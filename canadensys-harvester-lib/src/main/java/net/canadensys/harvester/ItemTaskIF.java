@@ -2,15 +2,16 @@ package net.canadensys.harvester;
 
 import java.util.Map;
 
+import net.canadensys.harvester.action.JobAction;
 import net.canadensys.harvester.exception.TaskExecutionException;
 import net.canadensys.harvester.occurrence.SharedParameterEnum;
 
 /**
- * Common interface for item task
+ * Common interface for tasks
  * @author canadensys
  *
  */
-public interface ItemTaskIF {
+public interface ItemTaskIF extends JobAction{
 	/**
 	 * Run this task
 	 * @param sharedParameters Shared parameters among different tasks or steps

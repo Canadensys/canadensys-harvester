@@ -46,4 +46,9 @@ public class GetResourceInfoTask implements ItemTaskIF{
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
 	}
+	
+	@Override
+	public String getTitle() {
+		return "Getting resource info";
+	}
 }

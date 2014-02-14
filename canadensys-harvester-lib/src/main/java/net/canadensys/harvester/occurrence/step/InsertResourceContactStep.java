@@ -77,5 +77,9 @@ public class InsertResourceContactStep implements ProcessingStepIF,JMSConsumerMe
 	public void setWriter(ItemWriterIF<ResourceContactModel> writer){
 		this.writer = writer;
 	}
-
+	
+	@Override
+	public String getTitle() {
+		return "Inserting resource contact data";
+	}
 }

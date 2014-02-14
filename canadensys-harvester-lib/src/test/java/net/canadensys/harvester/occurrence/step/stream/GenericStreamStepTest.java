@@ -55,9 +55,10 @@ public class GenericStreamStepTest {
 		List<ProcessingMessageIF> messages = writer.getContent();
 		DefaultMessage firstMessage = (DefaultMessage)messages.get(0);
 		
-		//ensure class name are preserved
+		//ensure class are preserved
 		assertEquals(GenericAsyncStep.class.getName(),firstMessage.getMsgHandlerClass().getName());
-		assertEquals(MockHabitObject.class.getName(),firstMessage.getContentClass().getName());
+		assertEquals(ArrayList.class.getName(),firstMessage.getContentClass().getName());
+		assertEquals(MockHabitObject.class,(((List<?>)firstMessage.getContent()).get(0)).getClass());
 		
 		//ensure that we can cast the content into the specified class
 		try{

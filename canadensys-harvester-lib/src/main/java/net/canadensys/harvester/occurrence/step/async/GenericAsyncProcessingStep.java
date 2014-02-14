@@ -1,5 +1,7 @@
 package net.canadensys.harvester.occurrence.step.async;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import net.canadensys.harvester.ItemProcessorIF;
@@ -23,7 +25,10 @@ public class GenericAsyncProcessingStep<T,S> implements ProcessingStepIF,JMSCons
 	
 	private ItemProcessorIF<T, S> itemProcessor;
 	private ItemWriterIF<S> writer;
+	
 	private Class<T> messageContentClass;
+	
+	private String stepTitle = "Processing and Writing data using GenericAsyncProcessingStep";
 	
 	/**
 	 * 
@@ -38,14 +43,26 @@ public class GenericAsyncProcessingStep<T,S> implements ProcessingStepIF,JMSCons
 		return DefaultMessage.class;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public boolean handleMessage(ProcessingMessageIF message) {
 		Object obj = ((DefaultMessage)message).getContent();
-		T data = messageContentClass.cast(obj);
-		S processedData = itemProcessor.process(data,null);
-		
+
 		try {
-			writer.write(processedData);
+			if(List.class.isAssignableFrom(obj.getClass())){
+				List<T> rawDataList = (List<T>)obj;
+				List<S> processedDataList = new ArrayList<S>(rawDataList.size());
+				
+				for(T rawData : rawDataList){
+					processedDataList.add(itemProcessor.process(rawData,null));
+				}
+				writer.write(processedDataList);
+			}
+			else{
+				T data = (T)obj;
+				S processedData = itemProcessor.process(data,null);
+				writer.write(processedData);
+			}
 		} catch (WriterException e) {
 			return false;
 		}
@@ -77,6 +94,14 @@ public class GenericAsyncProcessingStep<T,S> implements ProcessingStepIF,JMSCons
 	@Override
 	public void doStep() {}
 
+	/**
+	 * This will be used to route object to the right GenericAsyncStep in case more than one is registered.
+	 * @return
+	 */
+	public Class<?> getMessageContentClass() {
+		return messageContentClass;
+	}
+	
 	public ItemProcessorIF<T, S> getItemProcessor() {
 		return itemProcessor;
 	}
@@ -89,5 +114,13 @@ public class GenericAsyncProcessingStep<T,S> implements ProcessingStepIF,JMSCons
 	}
 	public void setWriter(ItemWriterIF<S> writer) {
 		this.writer = writer;
-	};
+	}
+	
+	public void setTitle(String stepTitle) {
+		this.stepTitle=stepTitle;
+	}
+	@Override
+	public String getTitle() {
+		return stepTitle;
+	}
 }

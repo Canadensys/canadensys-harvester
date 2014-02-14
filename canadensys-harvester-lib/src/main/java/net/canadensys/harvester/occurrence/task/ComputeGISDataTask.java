@@ -58,5 +58,9 @@ public class ComputeGISDataTask implements ItemTaskIF{
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
 	}
-
+	
+	@Override
+	public String getTitle() {
+		return "Computing GIS info";
+	}
 }

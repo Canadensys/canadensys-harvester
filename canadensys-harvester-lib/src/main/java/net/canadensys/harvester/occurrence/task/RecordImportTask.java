@@ -55,4 +55,9 @@ public class RecordImportTask implements ItemTaskIF{
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
 	}
+	
+	@Override
+	public String getTitle() {
+		return "Recording import";
+	}
 }

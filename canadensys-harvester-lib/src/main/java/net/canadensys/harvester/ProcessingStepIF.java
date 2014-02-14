@@ -2,6 +2,7 @@ package net.canadensys.harvester;
 
 import java.util.Map;
 
+import net.canadensys.harvester.action.JobAction;
 import net.canadensys.harvester.occurrence.SharedParameterEnum;
 
 /**
@@ -9,7 +10,7 @@ import net.canadensys.harvester.occurrence.SharedParameterEnum;
  * @author canadensys
  *
  */
-public interface ProcessingStepIF {
+public interface ProcessingStepIF extends JobAction{
 	
 	/**
 	 * Check that the step is ready to go.
@@ -25,6 +26,9 @@ public interface ProcessingStepIF {
 	 */
 	public void postStep();
 	
+	/**
+	 * Execute the step.
+	 */
 	public void doStep();
 
 }

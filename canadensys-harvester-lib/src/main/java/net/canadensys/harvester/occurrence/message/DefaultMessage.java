@@ -18,6 +18,7 @@ public class DefaultMessage implements ProcessingMessageIF{
 	
 	private Object content;
 	private Class<?> contentClass;
+	private Class<?> contentClassGeneric;
 	
 	public String getTimestamp() {
 		return timestamp;
@@ -45,6 +46,17 @@ public class DefaultMessage implements ProcessingMessageIF{
 	}
 	public void setContentClass(Class<?> contentClass) {
 		this.contentClass = contentClass;
+	}
+	
+	public Class<?> getContentClassGeneric() {
+		return contentClassGeneric;
+	}
+	/**
+	 * Set the class of the content when the content is a generic. (e.g. List<>)
+	 * @param contentClassGeneric
+	 */
+	public void setContentClassGeneric(Class<?> contentClassGeneric) {
+		this.contentClassGeneric = contentClassGeneric;
 	}
 	
 	@Override

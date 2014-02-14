@@ -67,4 +67,15 @@ public class CleanBufferTableTask implements ItemTaskIF {
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
 	}
+	
+	@Override
+	public String getTitle() {
+		return "Cleaning buffer tables";
+	}
+	
+//	@Transactional("bufferTransactionManager")
+//	@Override
+//	public void accept(JobActionVisitor visitor) {
+//		visitor.visit(this);
+//	}
 }

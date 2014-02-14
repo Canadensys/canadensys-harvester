@@ -23,6 +23,7 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -132,7 +133,15 @@ public class JMSConsumer{
 								//since the content is defined as an Object, we need to explicitly rebuild it
 								//TODO write a DefaultMessage deserializer that would handle that
 								rootObj= om.readTree(msg.getText());
-								dmsg.setContent(om.readValue(rootObj.get("content").toString(),dmsg.getContentClass()));
+								
+								//if the received type is a generic
+								if(dmsg.getContentClassGeneric() == null){
+									dmsg.setContent(om.readValue(rootObj.get("content").toString(),dmsg.getContentClass()));
+								}
+								else{
+									JavaType type = om.getTypeFactory().constructParametricType(dmsg.getContentClass(), dmsg.getContentClassGeneric());
+									dmsg.setContent(om.readValue(rootObj.get("content").toString(),type));
+								}
 								
 								//TODO use contentClass to route to the right handler (generic handlers may be there more than once)
 								currMsgHandler.handleMessage(dmsg);

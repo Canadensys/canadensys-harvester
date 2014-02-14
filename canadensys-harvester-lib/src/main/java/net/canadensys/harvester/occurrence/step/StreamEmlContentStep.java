@@ -80,4 +80,9 @@ public class StreamEmlContentStep implements ProcessingStepIF{
 			e.printStackTrace();
 		}
 	}
+
+	@Override
+	public String getTitle() {
+		return "Streaming EML";
+	}
 }

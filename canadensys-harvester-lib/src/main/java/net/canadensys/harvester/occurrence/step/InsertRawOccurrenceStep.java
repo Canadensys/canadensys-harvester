@@ -78,4 +78,9 @@ public class InsertRawOccurrenceStep implements ProcessingStepIF,JMSConsumerMess
 	public void setWriter(ItemWriterIF<OccurrenceRawModel> writer){
 		this.writer = writer;
 	}
+	
+	@Override
+	public String getTitle() {
+		return "Inserting raw occurrence data";
+	}
 }

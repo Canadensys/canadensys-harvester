@@ -135,4 +135,14 @@ public class StreamDwcContentStep implements ProcessingStepIF{
 	public void setFlushInterval(int flushInterval){
 		this.flushInterval = flushInterval;
 	}
+
+	@Override
+	public String getTitle() {
+		return "Streaming DwcA content";
+	}
+	
+//	@Override
+//	public void accept(JobActionVisitor visitor) {
+//		visitor.visit(this);
+//	}
 }

@@ -146,4 +146,9 @@ public class CheckHarvestingCompletenessTask implements LongRunningTaskIF{
 	public void cancel() {
 		taskCanceled.set(true);
 	}
+	
+	@Override
+	public String getTitle() {
+		return "Waiting for completion";
+	}
 }

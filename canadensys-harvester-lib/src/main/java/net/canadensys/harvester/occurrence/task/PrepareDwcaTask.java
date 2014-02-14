@@ -195,4 +195,9 @@ public class PrepareDwcaTask implements ItemTaskIF{
 			boolean allowDatasetShortnameExtraction) {
 		this.allowDatasetShortnameExtraction = allowDatasetShortnameExtraction;
 	}
+	
+	@Override
+	public String getTitle() {
+		return "Preparing dwca";
+	}
 }

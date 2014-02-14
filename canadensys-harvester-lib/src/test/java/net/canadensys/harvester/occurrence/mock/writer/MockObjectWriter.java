@@ -41,12 +41,17 @@ public class MockObjectWriter<T> implements ItemWriterIF<T>{
 
 	@Override
 	public void write(List<? extends T> elementList) {
+		content.addAll(elementList);
+		if(callback != null){
+			if(content.size() == numberOfElementBeforeCallback){
+				callback.onSuccess(null);
+			}
+		}
 	}
 
 	@Override
 	public void write(T element) {
 		content.add(element);
-		
 		if(callback != null){
 			if(content.size() == numberOfElementBeforeCallback){
 				callback.onSuccess(null);

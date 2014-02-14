@@ -97,4 +97,9 @@ public class ProcessInsertOccurrenceStep implements ProcessingStepIF,JMSConsumer
 	public void setWriter(ItemWriterIF<OccurrenceModel> writer){
 		this.writer = writer;
 	}
+	
+	@Override
+	public String getTitle() {
+		return "Inserting and processing occurrence data";
+	}
 }

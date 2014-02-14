@@ -1,5 +1,6 @@
 package net.canadensys.harvester.occurrence.step.async;
 
+import java.util.List;
 import java.util.Map;
 
 import net.canadensys.harvester.ItemWriterIF;
@@ -22,6 +23,7 @@ public class GenericAsyncStep<T> implements ProcessingStepIF,JMSConsumerMessageH
 	
 	private ItemWriterIF<T> writer;
 	private Class<T> messageContentClass;
+	private String stepTitle = "Writing data using GenericAsyncStep";
 	
 	/**
 	 * 
@@ -57,11 +59,17 @@ public class GenericAsyncStep<T> implements ProcessingStepIF,JMSConsumerMessageH
 		return messageContentClass;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public boolean handleMessage(ProcessingMessageIF message) {
 		Object obj = ((DefaultMessage)message).getContent();
 		try {
-			writer.write(messageContentClass.cast(obj));
+			if(List.class.isAssignableFrom(obj.getClass())){
+				writer.write((List<T>)obj);
+			}
+			else{
+				writer.write((T)obj);
+			}
 		} catch (WriterException e) {
 			return false;
 		}
@@ -76,5 +84,13 @@ public class GenericAsyncStep<T> implements ProcessingStepIF,JMSConsumerMessageH
 	
 	public void setWriter(ItemWriterIF<T> writer){
 		this.writer = writer;
+	}
+
+	public void setTitle(String stepTitle) {
+		this.stepTitle=stepTitle;
+	}
+	@Override
+	public String getTitle() {
+		return stepTitle;
 	}
 }
