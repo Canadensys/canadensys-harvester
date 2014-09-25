@@ -153,6 +153,7 @@ public class ProcessingConfigTest {
     
     //---JOB---
 	@Bean
+	@Scope("prototype")
 	public ImportDwcaJob importDwcaJob(){
 		return new ImportDwcaJob();
 	}
@@ -256,6 +257,7 @@ public class ProcessingConfigTest {
 	
 	//---READER wiring---
 	@Bean
+	@Scope("prototype")
 	public ItemReaderIF<OccurrenceRawModel> dwcItemReader(){
 		return new DwcaItemReader();
 	}
