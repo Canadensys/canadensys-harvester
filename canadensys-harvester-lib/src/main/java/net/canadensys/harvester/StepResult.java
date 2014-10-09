@@ -1,6 +1,12 @@
 package net.canadensys.harvester;
 
+/**
+ * Contains result of a step once it is executed.
+ * @author cgendreau
+ *
+ */
 public class StepResult {
+	
 	private final int numberOfRecords;
 	
 	public StepResult(int numberOfRecords){
