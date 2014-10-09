@@ -39,6 +39,7 @@ public class GenericStreamStepTest {
 		DwcaExtensionReader<MockHabitObject> extReader = new DwcaExtensionReader<MockHabitObject>();
 		extReader.setMapper(new DefaultBeanMapper<MockHabitObject>(MockHabitObject.class));
 		
+		streamHabitStep.addAsyncReceiverStep(GenericAsyncStep.class);
 		streamHabitStep.setReader(extReader);
 		streamHabitStep.setWriter(writer);
 		

@@ -40,6 +40,7 @@ import net.canadensys.harvester.occurrence.step.stream.StreamDwcContentStep;
 import net.canadensys.harvester.occurrence.step.stream.StreamDwcExtensionContentStep;
 import net.canadensys.harvester.occurrence.task.CheckHarvestingCompletenessTask;
 import net.canadensys.harvester.occurrence.task.CleanBufferTableTask;
+import net.canadensys.harvester.occurrence.task.ComputeMultimediaDataTask;
 import net.canadensys.harvester.occurrence.task.ComputeUniqueValueTask;
 import net.canadensys.harvester.occurrence.task.PrepareDwcaTask;
 import net.canadensys.harvester.occurrence.task.RecordImportTask;
@@ -214,6 +215,11 @@ public class ProcessingConfigTest {
 	@Bean
 	public ItemTaskIF cleanBufferTableTask(){
 		return new CleanBufferTableTask();
+	}
+	
+	@Bean
+	public ItemTaskIF computeMultimediaDataTask(){
+		return new ComputeMultimediaDataTask();
 	}
 	
 	@Bean
