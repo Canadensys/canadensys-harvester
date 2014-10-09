@@ -15,7 +15,7 @@ import net.canadensys.harvester.ItemReaderIF;
 import net.canadensys.harvester.ItemTaskIF;
 import net.canadensys.harvester.ItemWriterIF;
 import net.canadensys.harvester.LongRunningTaskIF;
-import net.canadensys.harvester.ProcessingStepIF;
+import net.canadensys.harvester.StepIF;
 import net.canadensys.harvester.jms.JMSWriter;
 import net.canadensys.harvester.jms.control.JMSControlProducer;
 import net.canadensys.harvester.occurrence.job.ComputeUniqueValueJob;
@@ -31,11 +31,13 @@ import net.canadensys.harvester.occurrence.reader.DwcaEmlReader;
 import net.canadensys.harvester.occurrence.reader.DwcaExtensionInfoReader;
 import net.canadensys.harvester.occurrence.reader.DwcaExtensionReader;
 import net.canadensys.harvester.occurrence.reader.DwcaItemReader;
+import net.canadensys.harvester.occurrence.step.HandleDwcaExtensionsStep;
 import net.canadensys.harvester.occurrence.step.InsertResourceContactStep;
 import net.canadensys.harvester.occurrence.step.StreamEmlContentStep;
 import net.canadensys.harvester.occurrence.step.SynchronousProcessOccurrenceExtensionStep;
 import net.canadensys.harvester.occurrence.step.async.ProcessInsertOccurrenceStep;
 import net.canadensys.harvester.occurrence.step.stream.StreamDwcContentStep;
+import net.canadensys.harvester.occurrence.step.stream.StreamDwcExtensionContentStep;
 import net.canadensys.harvester.occurrence.task.CheckHarvestingCompletenessTask;
 import net.canadensys.harvester.occurrence.task.CleanBufferTableTask;
 import net.canadensys.harvester.occurrence.task.ComputeUniqueValueTask;
@@ -168,26 +170,38 @@ public class ProcessingConfigTest {
 	
 	//---STEP---
 	@Bean(name="streamEmlContentStep")
-	public ProcessingStepIF streamEmlContentStep(){
+	public StepIF streamEmlContentStep(){
 		return new StreamEmlContentStep();
 	}
 	@Bean(name="streamDwcContentStep")
-	public ProcessingStepIF streamDwcContentStep(){
+	public StepIF streamDwcContentStep(){
 		return new StreamDwcContentStep();
 	}
 	
 	@Bean(name="processInsertOccurrenceStep")
-	public ProcessingStepIF processInsertOccurrenceStep(){
+	public StepIF processInsertOccurrenceStep(){
 		return new ProcessInsertOccurrenceStep();
 	}
 	
 	@Bean(name="insertResourceContactStep")
-	public ProcessingStepIF insertResourceContactStep(){
+	public StepIF insertResourceContactStep(){
 		return new InsertResourceContactStep();
 	}
 	
+	@Bean
+	@Scope("prototype")
+	public StepIF handleDwcaExtensionsStep(){
+		return new HandleDwcaExtensionsStep();
+	}
+	
+	@Bean
+	@Scope("prototype")
+	public StepIF streamDwcExtensionContentStep(){
+		return new StreamDwcExtensionContentStep();
+	}
+	
 	@Bean(name="synchronousProcessOccurrenceExtensionStep")
-	public ProcessingStepIF synchronousProcessOccurrenceExtensionStep(){
+	public StepIF synchronousProcessOccurrenceExtensionStep(){
 		return new SynchronousProcessOccurrenceExtensionStep();
 	}
 	

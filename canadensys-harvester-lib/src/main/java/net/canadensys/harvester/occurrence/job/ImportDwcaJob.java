@@ -6,7 +6,8 @@ import net.canadensys.harvester.AbstractProcessingJob;
 import net.canadensys.harvester.ItemProgressListenerIF;
 import net.canadensys.harvester.ItemTaskIF;
 import net.canadensys.harvester.LongRunningTaskIF;
-import net.canadensys.harvester.ProcessingStepIF;
+import net.canadensys.harvester.StepIF;
+import net.canadensys.harvester.StepResult;
 import net.canadensys.harvester.occurrence.SharedParameterEnum;
 import net.canadensys.harvester.occurrence.model.JobStatusModel;
 import net.canadensys.harvester.occurrence.model.JobStatusModel.JobStatus;
@@ -16,6 +17,7 @@ import net.canadensys.harvester.occurrence.task.GetResourceInfoTask;
 import net.canadensys.harvester.occurrence.task.PrepareDwcaTask;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 /**
  * This job allows to give a resource ID, stream the content into JMS messages and waiting for completion.
@@ -28,6 +30,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class ImportDwcaJob extends AbstractProcessingJob implements ItemProgressListenerIF{
 	
+	@Autowired
+	private ApplicationContext appContext;
+	
 	//Task and step
 	@Autowired
 	private ItemTaskIF getResourceInfoTask;
@@ -39,10 +44,13 @@ public class ImportDwcaJob extends AbstractProcessingJob implements ItemProgress
 	private ItemTaskIF cleanBufferTableTask;
 	
 	@Autowired
-	private ProcessingStepIF streamEmlContentStep;
+	private StepIF streamEmlContentStep;
 	
 	@Autowired
-	private ProcessingStepIF streamDwcContentStep;
+	private StepIF streamDwcContentStep;
+	
+	@Autowired
+	private StepIF handleDwcaExtensionsStep;
 	
 	@Autowired
 	private LongRunningTaskIF checkProcessingCompletenessTask;
@@ -78,11 +86,29 @@ public class ImportDwcaJob extends AbstractProcessingJob implements ItemProgress
 		executeStepSequentially(streamEmlContentStep, sharedParameters);
 		
 		jobStatusModel.setCurrentStatusExplanation("Streaming DwcA content");
-		executeStepSequentially(streamDwcContentStep, sharedParameters);
+		StepResult dwcContent = executeStepSequentially(streamDwcContentStep, sharedParameters);
+		
+		jobStatusModel.setCurrentStatusExplanation("Checking for DwcA extension(s)");
+		executeStepSequentially(handleDwcaExtensionsStep, sharedParameters);
 		
 		jobStatusModel.setCurrentStatusExplanation("Waiting for completion");
-		((CheckHarvestingCompletenessTask)checkProcessingCompletenessTask).addItemProgressListenerIF(this);
-		checkProcessingCompletenessTask.execute(sharedParameters);
+		
+		ItemTaskIF checkOccurrenceRecords = createCheckCompletenessTask("occurrence_raw", SharedParameterEnum.SOURCE_FILE_ID, dwcContent.getNumberOfRecord());
+		checkOccurrenceRecords.execute(sharedParameters);
+	}
+	
+	/**
+	 * Dynamically create ItemTaskIF
+	 * @param context
+	 * @param identifier
+	 * @param numberOfRecords
+	 * @return
+	 */
+	public ItemTaskIF createCheckCompletenessTask(String context, SharedParameterEnum identifier, int numberOfRecords){
+		CheckHarvestingCompletenessTask chcTask = (CheckHarvestingCompletenessTask)appContext.getBean("checkProcessingCompletenessTask");
+		chcTask.addItemProgressListenerIF(this);
+		chcTask.configure("occurrence_raw", SharedParameterEnum.SOURCE_FILE_ID, new Integer(numberOfRecords));
+		return chcTask;
 	}
 	
 	public void setItemProgressListener(ItemProgressListenerIF listener){
@@ -117,17 +143,17 @@ public class ImportDwcaJob extends AbstractProcessingJob implements ItemProgress
 	}
 
 	@Override
-	public void onSuccess() {
+	public void onSuccess(String context) {
 		jobStatusModel.setCurrentStatus(JobStatus.DONE);
 	}
 	
 	@Override
-	public void onCancel() {
+	public void onCancel(String context) {
 		jobStatusModel.setCurrentStatus(JobStatus.CANCEL);
 	}
 
 	@Override
-	public void onError(Throwable t) {
+	public void onError(String context,Throwable t) {
 		jobStatusModel.setCurrentStatus(JobStatus.ERROR);
 		jobStatusModel.setCurrentStatusExplanation(t.getMessage());
 	}

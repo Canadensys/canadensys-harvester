@@ -10,14 +10,12 @@ import java.util.Map;
 import net.canadensys.dataportal.occurrence.model.OccurrenceExtensionModel;
 import net.canadensys.harvester.ItemProcessorIF;
 import net.canadensys.harvester.config.ProcessingConfigTest;
-import net.canadensys.harvester.jms.JMSConsumerMessageHandlerIF;
 import net.canadensys.harvester.message.ProcessingMessageIF;
 import net.canadensys.harvester.occurrence.SharedParameterEnum;
 import net.canadensys.harvester.occurrence.mapper.OccurrenceExtensionMapper;
 import net.canadensys.harvester.occurrence.message.DefaultMessage;
 import net.canadensys.harvester.occurrence.mock.writer.MockMessageWriter;
 import net.canadensys.harvester.occurrence.reader.DwcaExtensionReader;
-import net.canadensys.harvester.occurrence.step.async.GenericAsyncStep;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,10 +46,6 @@ public class StreamDwcExtensionContentStepTest {
 		DwcaExtensionReader<OccurrenceExtensionModel> extReader = new DwcaExtensionReader<OccurrenceExtensionModel>();
 		extReader.setMapper(new OccurrenceExtensionMapper());
 		
-		List<Class<? extends JMSConsumerMessageHandlerIF>> msgHandlerClassList = new ArrayList<Class<? extends JMSConsumerMessageHandlerIF>>();
-		msgHandlerClassList.add(GenericAsyncStep.class);
-		streamExtStep.setMessageClasses(msgHandlerClassList);
-		
 		//create a mock writer
 		streamExtStep.setWriter(mockMessageWriter);
 		streamExtStep.setReader(extReader);
@@ -61,6 +55,7 @@ public class StreamDwcExtensionContentStepTest {
 		sharedParameters.put(SharedParameterEnum.SOURCE_FILE_ID, "dwca-vascan-checklist");
 		sharedParameters.put(SharedParameterEnum.DWCA_PATH,"src/test/resources/dwca-vascan-checklist");
 		sharedParameters.put(SharedParameterEnum.DWCA_EXTENSION_TYPE,"description");
+		sharedParameters.put(SharedParameterEnum.RESOURCE_UUID,"1");
 		
 		streamExtStep.preStep(sharedParameters);
 		streamExtStep.doStep();

@@ -36,11 +36,12 @@ public class CleanBufferTableTask implements ItemTaskIF {
 	@Override
 	public void execute(Map<SharedParameterEnum,Object> sharedParameters){
 		String sourceFileId = (String)sharedParameters.get(SharedParameterEnum.SOURCE_FILE_ID);
+		String resourceUUID = (String)sharedParameters.get(SharedParameterEnum.RESOURCE_UUID);
 		
 		Session session = sessionFactory.getCurrentSession();
 		
-		if(sourceFileId == null){
-			LOGGER.fatal("Misconfigured task : needs  sourceFileId");
+		if(sourceFileId == null || resourceUUID == null){
+			LOGGER.fatal("Misconfigured task : sourceFileId and resourceUUID required");
 			throw new TaskExecutionException("Misconfigured task");
 		}
 		try{
@@ -50,6 +51,10 @@ public class CleanBufferTableTask implements ItemTaskIF {
 			
 			query = session.createSQLQuery("DELETE FROM buffer.occurrence WHERE sourcefileid=?");
 			query.setString(0, sourceFileId);
+			query.executeUpdate();
+			
+			query = session.createSQLQuery("DELETE FROM buffer.occurrence_extension WHERE resource_uuid=?");
+			query.setString(0, resourceUUID);
 			query.executeUpdate();
 			
 			query = session.createSQLQuery("DELETE FROM buffer.resource_contact WHERE sourcefileid=?");

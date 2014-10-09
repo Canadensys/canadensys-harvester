@@ -16,7 +16,7 @@ import net.canadensys.harvester.ItemProcessorIF;
 import net.canadensys.harvester.ItemReaderIF;
 import net.canadensys.harvester.ItemTaskIF;
 import net.canadensys.harvester.ItemWriterIF;
-import net.canadensys.harvester.ProcessingStepIF;
+import net.canadensys.harvester.StepIF;
 import net.canadensys.harvester.config.harvester.HarvesterConfig;
 import net.canadensys.harvester.config.harvester.HarvesterConfigIF;
 import net.canadensys.harvester.jms.JMSWriter;
@@ -230,7 +230,7 @@ public class TestConfig {
 	// ---TASK wiring---
 
 	@Bean(name = "insertResourceContactStep")
-	public ProcessingStepIF insertResourceContactStep() {
+	public StepIF insertResourceContactStep() {
 		return new InsertResourceContactStep();
 	}
 
@@ -275,7 +275,7 @@ public class TestConfig {
 	}
 
 	@Bean(name = "processInsertOccurrenceStep")
-	public ProcessingStepIF processInsertOccurrenceStep() {
+	public StepIF processInsertOccurrenceStep() {
 		return new ProcessInsertOccurrenceStep();
 	}
 
@@ -330,13 +330,13 @@ public class TestConfig {
 	}
 
 	@Bean(name = "streamDwcContentStep")
-	public ProcessingStepIF streamDwcContentStep() {
+	public StepIF streamDwcContentStep() {
 		return new StreamDwcContentStep();
 	}
 
 	// ---STEP---
 	@Bean(name = "streamEmlContentStep")
-	public ProcessingStepIF streamEmlContentStep() {
+	public StepIF streamEmlContentStep() {
 		return new StreamEmlContentStep();
 	}
 

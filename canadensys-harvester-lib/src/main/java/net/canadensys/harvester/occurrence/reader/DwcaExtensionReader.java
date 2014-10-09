@@ -28,6 +28,8 @@ public class DwcaExtensionReader<T> extends AbstractDwcaReaderSupport implements
 	private static final Logger LOGGER = Logger.getLogger(DwcaExtensionReader.class);
 	
 	private final AtomicBoolean canceled = new AtomicBoolean(false);
+	// Should rows that are completely empty (separators are there but no values) be read ?
+	private final boolean skipEmptyRows = true;
 	private String dwcaExtensionType = null;
 	
 	private ItemMapperIF<T> occurrenceExtensionMapper;
@@ -70,7 +72,8 @@ public class DwcaExtensionReader<T> extends AbstractDwcaReaderSupport implements
 		//ImmutableMap from Google Collections?
 		Map<String,Object> properties = new HashMap<String, Object>();
 		int i=0;
-		String[] data = rowsIt.next();
+		String[] data = skipEmptyRows?getNextNonEmptyLine():rowsIt.next();
+		
 		for(String currHeader : headers){
 			properties.put(currHeader, data[i]);
 			i++;
@@ -82,6 +85,25 @@ public class DwcaExtensionReader<T> extends AbstractDwcaReaderSupport implements
 			}
 		}
 		return occurrenceExtensionMapper.mapElement(properties);
+	}
+	
+	/**
+	 * This method will skip rows where all the terms are empty.
+	 * @return
+	 */
+	private String[] getNextNonEmptyLine(){
+
+		String[] data = null;
+		while(rowsIt.hasNext()){
+			data = rowsIt.next();
+			
+			for(int i=0;i<data.length;i++){
+				if(StringUtils.isNotBlank(data[i])){
+					return data;
+				}
+			}
+		}
+		return null;
 	}
 	
 	/**

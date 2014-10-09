@@ -41,6 +41,7 @@ public class GetResourceInfoTask implements ItemTaskIF{
 		}
 		sharedParameters.put(SharedParameterEnum.DWCA_URL, resourceModel.getArchive_url());
 		sharedParameters.put(SharedParameterEnum.SOURCE_FILE_ID, resourceModel.getSourcefileid());
+		sharedParameters.put(SharedParameterEnum.RESOURCE_UUID, resourceModel.getResource_uuid());
 	}
 	
 	public void setSessionFactory(SessionFactory sessionFactory) {

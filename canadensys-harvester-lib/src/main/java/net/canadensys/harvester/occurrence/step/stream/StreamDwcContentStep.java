@@ -9,7 +9,7 @@ import net.canadensys.dataportal.occurrence.model.OccurrenceRawModel;
 import net.canadensys.harvester.ItemProcessorIF;
 import net.canadensys.harvester.ItemReaderIF;
 import net.canadensys.harvester.ItemWriterIF;
-import net.canadensys.harvester.ProcessingStepIF;
+import net.canadensys.harvester.StepResult;
 import net.canadensys.harvester.exception.WriterException;
 import net.canadensys.harvester.message.ProcessingMessageIF;
 import net.canadensys.harvester.occurrence.SharedParameterEnum;
@@ -25,7 +25,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
  * @author canadensys
  *
  */
-public class StreamDwcContentStep implements ProcessingStepIF{
+public class StreamDwcContentStep extends AbstractStreamStep {
 	
 	private static final Logger LOGGER = Logger.getLogger(StreamDwcContentStep.class);
 	private static final int DEFAULT_FLUSH_INTERVAL = 250;
@@ -50,7 +50,6 @@ public class StreamDwcContentStep implements ProcessingStepIF{
 	@Qualifier("lineProcessor")
 	private ItemProcessorIF<OccurrenceRawModel, OccurrenceRawModel> lineProcessor;
 	
-	private int numberOfRecords = 0;
 	private Map<SharedParameterEnum,Object> sharedParameters;
 	
 	//Flush interval, number of OccurrenceRawModel until we flush it (into a JMS message)
@@ -93,7 +92,8 @@ public class StreamDwcContentStep implements ProcessingStepIF{
 	}
 
 	@Override
-	public void doStep() {
+	public StepResult doStep() {
+		int numberOfRecords = 0;
 		try{
 			ProcessOccurrenceMessage occMsg = new ProcessOccurrenceMessage(usedFields);
 			
@@ -120,17 +120,12 @@ public class StreamDwcContentStep implements ProcessingStepIF{
 			if(occMsg.getBulkRawModel().getData().size() > 0){
 				writer.write(occMsg);
 			}
-			
 			System.out.println("Streaming the file took :" + (System.currentTimeMillis()-t) + " ms");
-			sharedParameters.put(SharedParameterEnum.NUMBER_OF_RECORDS,numberOfRecords);
 		}
 		catch(WriterException e){
 			LOGGER.fatal(e);
 		}
-	}
-	
-	public int getNumberOfRecords(){
-		return numberOfRecords;
+		return new StepResult(numberOfRecords);
 	}
 	
 	public void setReader(ItemReaderIF<OccurrenceRawModel> reader) {
@@ -153,6 +148,12 @@ public class StreamDwcContentStep implements ProcessingStepIF{
 	@Override
 	public String getTitle() {
 		return "Streaming DwcA content";
+	}
+
+	@Override
+	public void cancel() {
+		// TODO Auto-generated method stub
+		
 	}
 	
 }

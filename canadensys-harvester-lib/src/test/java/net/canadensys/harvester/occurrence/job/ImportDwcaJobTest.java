@@ -8,7 +8,7 @@ import java.beans.PropertyChangeListener;
 import java.math.BigDecimal;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import net.canadensys.harvester.ProcessingStepIF;
+import net.canadensys.harvester.StepIF;
 import net.canadensys.harvester.config.ProcessingConfigTest;
 import net.canadensys.harvester.jms.JMSConsumer;
 import net.canadensys.harvester.jms.JMSConsumerMessageHandlerIF;
@@ -94,8 +94,8 @@ public class ImportDwcaJobTest implements PropertyChangeListener{
 		reader.registerHandler(insertResourceContactStep);
 		
 		try {
-			((ProcessingStepIF)processInsertOccurrenceStep).preStep(null);
-			((ProcessingStepIF)insertResourceContactStep).preStep(null);
+			((StepIF)processInsertOccurrenceStep).preStep(null);
+			((StepIF)insertResourceContactStep).preStep(null);
 		} catch (IllegalStateException e) {
 			e.printStackTrace();
 		}
@@ -110,8 +110,8 @@ public class ImportDwcaJobTest implements PropertyChangeListener{
 	public void destroy(){
 		reader.close();
 		controlConsumer.close();
-		((ProcessingStepIF)processInsertOccurrenceStep).postStep();
-		((ProcessingStepIF)insertResourceContactStep).postStep();
+		((StepIF)processInsertOccurrenceStep).postStep();
+		((StepIF)insertResourceContactStep).postStep();
 	}
 	
 	@Test
@@ -120,6 +120,7 @@ public class ImportDwcaJobTest implements PropertyChangeListener{
 						
 		importDwcaJob.addToSharedParameters(SharedParameterEnum.DWCA_PATH, "src/test/resources/dwca-qmor-specimens");
 		importDwcaJob.addToSharedParameters(SharedParameterEnum.SOURCE_FILE_ID, "qmor-specimens");
+		importDwcaJob.addToSharedParameters(SharedParameterEnum.RESOURCE_UUID, "ada5d0b1-07de-4dc0-83d4-e312f0fb81cb");
 		
 		JobStatusModel jobStatusModel = new JobStatusModel();
 		jobStatusModel.addPropertyChangeListener(this);
@@ -166,6 +167,7 @@ public class ImportDwcaJobTest implements PropertyChangeListener{
 	public void testFailedImport(){						
 		importDwcaJob.addToSharedParameters(SharedParameterEnum.DWCA_PATH, "src/test/resources/dwca-qmor-specimens-broken");
 		importDwcaJob.addToSharedParameters(SharedParameterEnum.SOURCE_FILE_ID, "qmor-specimens");
+		importDwcaJob.addToSharedParameters(SharedParameterEnum.RESOURCE_UUID, "ada5d0b1-07de-4dc0-83d4-e312f0fb81cb");
 		
 		JobStatusModel jobStatusModel = new JobStatusModel();
 		importDwcaJob.doJob(jobStatusModel);

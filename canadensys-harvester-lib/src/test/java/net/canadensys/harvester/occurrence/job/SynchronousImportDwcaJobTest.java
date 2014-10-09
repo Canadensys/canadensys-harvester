@@ -4,7 +4,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.math.BigDecimal;
 
-import net.canadensys.harvester.ProcessingStepIF;
+import net.canadensys.harvester.StepIF;
 import net.canadensys.harvester.config.ProcessingConfigTest;
 import net.canadensys.harvester.occurrence.SharedParameterEnum;
 import net.canadensys.harvester.occurrence.model.JobStatusModel;
@@ -57,12 +57,12 @@ public class SynchronousImportDwcaJobTest {
 		
 		@Override
 		@Bean(name="streamEmlContentStep")
-		public ProcessingStepIF streamEmlContentStep(){
+		public StepIF streamEmlContentStep(){
 			return new SynchronousProcessEmlContentStep();
 		}
 		@Override
 		@Bean(name="streamDwcContentStep")
-		public ProcessingStepIF streamDwcContentStep(){
+		public StepIF streamDwcContentStep(){
 			return new SynchronousProcessOccurrenceStep();
 		}
 	}
@@ -73,6 +73,7 @@ public class SynchronousImportDwcaJobTest {
 						
 		importDwcaJob.addToSharedParameters(SharedParameterEnum.DWCA_PATH, "src/test/resources/dwca-qmor-specimens");
 		importDwcaJob.addToSharedParameters(SharedParameterEnum.SOURCE_FILE_ID, "qmor-specimens");
+		importDwcaJob.addToSharedParameters(SharedParameterEnum.RESOURCE_UUID, "ada5d0b1-07de-4dc0-83d4-e312f0fb81cb");
 		
 		JobStatusModel jobStatusModel = new JobStatusModel();
 		importDwcaJob.doJob(jobStatusModel);

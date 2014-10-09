@@ -64,11 +64,25 @@ public class DwcaExtensionLineProcessor implements ItemProcessorIF<OccurrenceExt
 			throws ProcessException {
 		
 		String sourceFileId = (String)sharedParameters.get(SharedParameterEnum.SOURCE_FILE_ID);
+		String resourceUUID = (String)sharedParameters.get(SharedParameterEnum.RESOURCE_UUID);
+		String extensionType = (String)sharedParameters.get(SharedParameterEnum.DWCA_EXTENSION_TYPE);
+		
         if(sourceFileId == null){
-			LOGGER.fatal("Misconfigured processor : needs  sourceFileId");
+			LOGGER.fatal("Misconfigured processor : sourceFileId required");
 			throw new TaskExecutionException("Misconfigured DwcaExtensionLineProcessor");
 		}
+        if(resourceUUID == null){
+			LOGGER.fatal("Misconfigured processor : resourceUUID required");
+			throw new TaskExecutionException("Misconfigured DwcaExtensionLineProcessor");
+		}
+        if(extensionType == null){
+			LOGGER.fatal("Misconfigured processor : extensionType required");
+			throw new TaskExecutionException("Misconfigured DwcaExtensionLineProcessor");
+		}
+        
         data.setSourcefileid(sourceFileId);
+        data.setResource_uuid(resourceUUID);
+        data.setExt_type(extensionType);
         if(nextId == null || idPoll.isEmpty()){
 			try{
 				idPoll = (List<Number>)sqlQuery.list();

@@ -9,7 +9,8 @@ import net.canadensys.dataportal.occurrence.model.OccurrenceRawModel;
 import net.canadensys.harvester.ItemProcessorIF;
 import net.canadensys.harvester.ItemReaderIF;
 import net.canadensys.harvester.ItemWriterIF;
-import net.canadensys.harvester.ProcessingStepIF;
+import net.canadensys.harvester.StepIF;
+import net.canadensys.harvester.StepResult;
 import net.canadensys.harvester.exception.WriterException;
 import net.canadensys.harvester.occurrence.SharedParameterEnum;
 import net.canadensys.harvester.occurrence.model.JobStatusModel;
@@ -24,7 +25,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
  * @author cgendreau
  *
  */
-public class SynchronousProcessOccurrenceStep implements ProcessingStepIF {
+public class SynchronousProcessOccurrenceStep implements StepIF {
 	
 	private static final int DEFAULT_FLUSH_INTERVAL = 250;
 	
@@ -49,7 +50,6 @@ public class SynchronousProcessOccurrenceStep implements ProcessingStepIF {
 	private ItemWriterIF<OccurrenceRawModel> rawWriter;
 	
 	private Map<SharedParameterEnum,Object> sharedParameters;
-	private int numberOfRecords = 0;
 
 	@Override
 	public String getTitle() {
@@ -92,7 +92,8 @@ public class SynchronousProcessOccurrenceStep implements ProcessingStepIF {
 	}
 
 	@Override
-	public void doStep() {
+	public StepResult doStep() {
+		int numberOfRecords = 0;
 		List<OccurrenceModel> occList = new ArrayList<OccurrenceModel>(DEFAULT_FLUSH_INTERVAL);
 		List<OccurrenceRawModel> occRawList = new ArrayList<OccurrenceRawModel>(DEFAULT_FLUSH_INTERVAL);
 		
@@ -131,7 +132,13 @@ public class SynchronousProcessOccurrenceStep implements ProcessingStepIF {
 		catch(WriterException wEx){
 			wEx.printStackTrace();
 		}
-		sharedParameters.put(SharedParameterEnum.NUMBER_OF_RECORDS,numberOfRecords);
+		return new StepResult(numberOfRecords);
+	}
+
+	@Override
+	public void cancel() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

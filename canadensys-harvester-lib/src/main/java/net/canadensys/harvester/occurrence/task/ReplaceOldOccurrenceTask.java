@@ -29,7 +29,7 @@ public class ReplaceOldOccurrenceTask implements ItemTaskIF{
 	private SessionFactory sessionFactory;
 	
 	/**
-	 * @param sharedParameters SharedParameterEnum.SOURCE_FILE_ID required
+	 * @param sharedParameters SharedParameterEnum.SOURCE_FILE_ID, SharedParameterEnum.RESOURCE_UUID required
 	 */
 	@Transactional("publicTransactionManager")
 	@Override
@@ -37,9 +37,10 @@ public class ReplaceOldOccurrenceTask implements ItemTaskIF{
 		Session session = sessionFactory.getCurrentSession();
 		
 		String sourceFileId = (String)sharedParameters.get(SharedParameterEnum.SOURCE_FILE_ID);
+		String resourceUUID = (String)sharedParameters.get(SharedParameterEnum.RESOURCE_UUID);
 
-		if(sourceFileId == null){
-			LOGGER.fatal("Misconfigured task : sourceFileId cannot be null");
+		if(sourceFileId == null || resourceUUID == null){
+			LOGGER.fatal("Misconfigured task : sourceFileId and resourceUUID are required");
 			throw new TaskExecutionException("Misconfigured task");
 		}
 		
@@ -54,6 +55,9 @@ public class ReplaceOldOccurrenceTask implements ItemTaskIF{
 			query = session.createSQLQuery("DELETE FROM resource_contact WHERE sourcefileid=?");
 			query.setString(0, sourceFileId);
 			query.executeUpdate();
+			query = session.createSQLQuery("DELETE FROM occurrence_extension WHERE resource_uuid=?");
+			query.setString(0, resourceUUID);
+			query.executeUpdate();
 			
 			//copy records from buffer
 			query = session.createSQLQuery("INSERT INTO occurrence (SELECT * FROM buffer.occurrence WHERE sourcefileid=?)");
@@ -65,6 +69,9 @@ public class ReplaceOldOccurrenceTask implements ItemTaskIF{
 			query = session.createSQLQuery("INSERT INTO resource_contact (SELECT * FROM buffer.resource_contact WHERE sourcefileid=?)");
 			query.setString(0, sourceFileId);
 			query.executeUpdate();
+			query = session.createSQLQuery("INSERT INTO occurrence_extension (SELECT * FROM buffer.occurrence_extension WHERE resource_uuid=?)");
+			query.setString(0, resourceUUID);
+			query.executeUpdate();
 			
 			//empty buffer schema for this sourcefileid
 			query = session.createSQLQuery("DELETE FROM buffer.occurrence WHERE sourcefileid=?");
@@ -75,6 +82,9 @@ public class ReplaceOldOccurrenceTask implements ItemTaskIF{
 			query.executeUpdate();
 			query = session.createSQLQuery("DELETE FROM buffer.resource_contact WHERE sourcefileid=?");
 			query.setString(0, sourceFileId);
+			query.executeUpdate();
+			query = session.createSQLQuery("DELETE FROM buffer.occurrence_extension WHERE resource_uuid=?");
+			query.setString(0, resourceUUID);
 			query.executeUpdate();
 			
 			sharedParameters.put(SharedParameterEnum.NUMBER_OF_RECORDS, numberOfRecords);

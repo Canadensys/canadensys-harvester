@@ -9,10 +9,13 @@ import net.canadensys.dataportal.occurrence.model.OccurrenceExtensionModel;
 import net.canadensys.harvester.ItemProcessorIF;
 import net.canadensys.harvester.ItemReaderIF;
 import net.canadensys.harvester.ItemWriterIF;
-import net.canadensys.harvester.ProcessingStepIF;
+import net.canadensys.harvester.StepIF;
+import net.canadensys.harvester.StepResult;
 import net.canadensys.harvester.exception.WriterException;
 import net.canadensys.harvester.occurrence.SharedParameterEnum;
 
+import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.TermFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -22,7 +25,7 @@ import org.springframework.context.ApplicationContext;
  * @author cgendreau
  *
  */
-public class SynchronousProcessOccurrenceExtensionStep implements ProcessingStepIF{
+public class SynchronousProcessOccurrenceExtensionStep implements StepIF {
 	
 	private static final int DEFAULT_FLUSH_INTERVAL = 250;
 	
@@ -70,20 +73,22 @@ public class SynchronousProcessOccurrenceExtensionStep implements ProcessingStep
 	}
 
 	@Override
-	public void doStep() {
+	public StepResult doStep() {
 		List<OccurrenceExtensionModel> occExtList = new ArrayList<OccurrenceExtensionModel>(DEFAULT_FLUSH_INTERVAL);
+		int numberOfRecords = 0;
+		
 		String currExtension = dwcaInfoReader.read();
 		while(currExtension != null){
+			Term extTerm = TermFactory.instance().findTerm(currExtension);
 			//TODO if there is more than one extension maybe trigger on thread per extension?
 			//create a reader
 			ItemReaderIF<OccurrenceExtensionModel> extReader = (ItemReaderIF<OccurrenceExtensionModel>)appContext.getBean("dwcaOccurrenceExtensionReader");
 			
-			int numberOfRecords = 0;
 			//tricky part, shallow copy(not a deep copy) sharedParameters to indicate each readers which extension to use
 			//this is probably not the best way to achieve that
 			Map<SharedParameterEnum, Object> innerSharedParameters = new HashMap<SharedParameterEnum, Object>(sharedParameters);
 			
-			innerSharedParameters.put(SharedParameterEnum.DWCA_EXTENSION_TYPE, currExtension);
+			innerSharedParameters.put(SharedParameterEnum.DWCA_EXTENSION_TYPE, extTerm.simpleName());
 			extReader.openReader(innerSharedParameters);
 			
 			try {
@@ -113,10 +118,17 @@ public class SynchronousProcessOccurrenceExtensionStep implements ProcessingStep
 			extReader.closeReader();
 			currExtension = dwcaInfoReader.read();
 		}
+		return new StepResult(numberOfRecords);
 	}
 	
 	@Override
 	public String getTitle() {
 		return "SynchronousProcessOccurrenceExtensionStep";
+	}
+
+	@Override
+	public void cancel() {
+		// TODO Auto-generated method stub
+		
 	}
 }

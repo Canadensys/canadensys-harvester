@@ -19,7 +19,7 @@ import net.canadensys.harvester.ItemTaskIF;
 import net.canadensys.harvester.ItemWriterIF;
 import net.canadensys.harvester.JobServiceIF;
 import net.canadensys.harvester.LongRunningTaskIF;
-import net.canadensys.harvester.ProcessingStepIF;
+import net.canadensys.harvester.StepIF;
 import net.canadensys.harvester.impl.JobServiceImpl;
 import net.canadensys.harvester.main.JobInitiatorMain;
 import net.canadensys.harvester.occurrence.dao.IPTFeedDAO;
@@ -189,12 +189,12 @@ public class CLIProcessingConfig {
 
 	//---STEP Synchronous---
 	@Bean(name="streamEmlContentStep")
-	public ProcessingStepIF streamEmlContentStep(){
+	public StepIF streamEmlContentStep(){
 		return new SynchronousProcessEmlContentStep();
 	}
 
 	@Bean(name="streamDwcContentStep")
-	public ProcessingStepIF StreamDwcContentStep(){
+	public StepIF StreamDwcContentStep(){
 		return new SynchronousProcessOccurrenceStep();
 	}
 

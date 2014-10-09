@@ -23,6 +23,9 @@ public class MoveToPublicSchemaJob extends AbstractProcessingJob{
 	private ItemTaskIF computeGISDataTask;
 	
 	@Autowired
+	private ItemTaskIF computeMultimediaDataTask;
+	
+	@Autowired
 	private ItemTaskIF replaceOldOccurrenceTask;
 	
 	@Autowired
@@ -35,6 +38,9 @@ public class MoveToPublicSchemaJob extends AbstractProcessingJob{
 	public void doJob(JobStatusModel jobStatusModel){
 		jobStatusModel.setCurrentStatusExplanation("Compute GIS data");
 		computeGISDataTask.execute(sharedParameters);
+		
+		jobStatusModel.setCurrentStatusExplanation("Compute multimedia data");
+		computeMultimediaDataTask.execute(sharedParameters);
 		
 		jobStatusModel.setCurrentStatusExplanation("Replace previous records");
 		replaceOldOccurrenceTask.execute(sharedParameters);

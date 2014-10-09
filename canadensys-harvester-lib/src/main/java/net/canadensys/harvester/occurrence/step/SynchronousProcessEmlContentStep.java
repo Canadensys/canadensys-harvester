@@ -6,7 +6,8 @@ import net.canadensys.dataportal.occurrence.model.ResourceContactModel;
 import net.canadensys.harvester.ItemProcessorIF;
 import net.canadensys.harvester.ItemReaderIF;
 import net.canadensys.harvester.ItemWriterIF;
-import net.canadensys.harvester.ProcessingStepIF;
+import net.canadensys.harvester.StepIF;
+import net.canadensys.harvester.StepResult;
 import net.canadensys.harvester.exception.WriterException;
 import net.canadensys.harvester.occurrence.SharedParameterEnum;
 
@@ -20,7 +21,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
  * @author canadensys
  *
  */
-public class SynchronousProcessEmlContentStep implements ProcessingStepIF{
+public class SynchronousProcessEmlContentStep implements StepIF {
 
 	@Autowired
 	@Qualifier("dwcaEmlReader")
@@ -61,7 +62,7 @@ public class SynchronousProcessEmlContentStep implements ProcessingStepIF{
 	}
 
 	@Override
-	public void doStep() {		
+	public StepResult doStep() {		
 		Eml emlModel = reader.read();
 		ResourceContactModel resourceContactModel = resourceContactProcessor.process(emlModel, sharedParameters);
 		
@@ -70,10 +71,17 @@ public class SynchronousProcessEmlContentStep implements ProcessingStepIF{
 		} catch (WriterException e) {
 			e.printStackTrace();
 		}
+		return new StepResult(1);
 	}
 
 	@Override
 	public String getTitle() {
 		return "Process EML";
+	}
+
+	@Override
+	public void cancel() {
+		// TODO Auto-generated method stub
+		
 	}
 }

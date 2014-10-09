@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import net.canadensys.harvester.ItemWriterIF;
-import net.canadensys.harvester.ProcessingStepIF;
 import net.canadensys.harvester.exception.WriterException;
 import net.canadensys.harvester.jms.JMSConsumerMessageHandlerIF;
 import net.canadensys.harvester.message.ProcessingMessageIF;
@@ -19,7 +18,7 @@ import net.canadensys.harvester.occurrence.message.DefaultMessage;
  *
  * @param <T>
  */
-public class GenericAsyncStep<T> implements ProcessingStepIF,JMSConsumerMessageHandlerIF{
+public class GenericAsyncStep<T> extends AbstractReceiverStep implements JMSConsumerMessageHandlerIF{
 	
 	private ItemWriterIF<T> writer;
 	private Class<T> messageContentClass;
@@ -76,12 +75,6 @@ public class GenericAsyncStep<T> implements ProcessingStepIF,JMSConsumerMessageH
 		return true;
 	}
 	
-	/**
-	 * No implemented, async step
-	 */
-	@Override
-	public void doStep() {};
-	
 	public void setWriter(ItemWriterIF<T> writer){
 		this.writer = writer;
 	}
@@ -92,5 +85,11 @@ public class GenericAsyncStep<T> implements ProcessingStepIF,JMSConsumerMessageH
 	@Override
 	public String getTitle() {
 		return stepTitle;
+	}
+
+	@Override
+	public void cancel() {
+		// TODO Auto-generated method stub
+		
 	}
 }
