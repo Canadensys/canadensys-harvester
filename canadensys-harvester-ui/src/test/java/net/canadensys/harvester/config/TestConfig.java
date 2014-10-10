@@ -8,10 +8,12 @@ import net.canadensys.dataportal.occurrence.dao.ImportLogDAO;
 import net.canadensys.dataportal.occurrence.dao.ResourceDAO;
 import net.canadensys.dataportal.occurrence.dao.impl.HibernateResourceDAO;
 import net.canadensys.dataportal.occurrence.model.ImportLogModel;
+import net.canadensys.dataportal.occurrence.model.OccurrenceExtensionModel;
 import net.canadensys.dataportal.occurrence.model.OccurrenceModel;
 import net.canadensys.dataportal.occurrence.model.OccurrenceRawModel;
 import net.canadensys.dataportal.occurrence.model.ResourceContactModel;
 import net.canadensys.dataportal.occurrence.model.ResourceModel;
+import net.canadensys.harvester.ItemMapperIF;
 import net.canadensys.harvester.ItemProcessorIF;
 import net.canadensys.harvester.ItemReaderIF;
 import net.canadensys.harvester.ItemTaskIF;
@@ -29,18 +31,25 @@ import net.canadensys.harvester.occurrence.dao.IPTFeedDAO;
 import net.canadensys.harvester.occurrence.job.ComputeUniqueValueJob;
 import net.canadensys.harvester.occurrence.job.ImportDwcaJob;
 import net.canadensys.harvester.occurrence.job.MoveToPublicSchemaJob;
+import net.canadensys.harvester.occurrence.mapper.OccurrenceExtensionMapper;
 import net.canadensys.harvester.occurrence.notification.ResourceStatusNotifierIF;
+import net.canadensys.harvester.occurrence.processor.DwcaExtensionLineProcessor;
 import net.canadensys.harvester.occurrence.processor.DwcaLineProcessor;
 import net.canadensys.harvester.occurrence.processor.OccurrenceProcessor;
 import net.canadensys.harvester.occurrence.processor.ResourceContactProcessor;
 import net.canadensys.harvester.occurrence.reader.DwcaEmlReader;
+import net.canadensys.harvester.occurrence.reader.DwcaExtensionInfoReader;
+import net.canadensys.harvester.occurrence.reader.DwcaExtensionReader;
 import net.canadensys.harvester.occurrence.reader.DwcaItemReader;
+import net.canadensys.harvester.occurrence.step.HandleDwcaExtensionsStep;
 import net.canadensys.harvester.occurrence.step.InsertResourceContactStep;
 import net.canadensys.harvester.occurrence.step.StreamEmlContentStep;
 import net.canadensys.harvester.occurrence.step.async.ProcessInsertOccurrenceStep;
 import net.canadensys.harvester.occurrence.step.stream.StreamDwcContentStep;
+import net.canadensys.harvester.occurrence.step.stream.StreamDwcExtensionContentStep;
 import net.canadensys.harvester.occurrence.task.CheckHarvestingCompletenessTask;
 import net.canadensys.harvester.occurrence.task.CleanBufferTableTask;
+import net.canadensys.harvester.occurrence.task.ComputeMultimediaDataTask;
 import net.canadensys.harvester.occurrence.task.ComputeUniqueValueTask;
 import net.canadensys.harvester.occurrence.task.PrepareDwcaTask;
 import net.canadensys.harvester.occurrence.task.RecordImportTask;
@@ -81,6 +90,8 @@ public class TestConfig {
 	private String hibernateBufferSchema;
 	@Value("${occurrence.idGenerationSQL}")
 	private String idGenerationSQL;
+	@Value( "${occurrence.extension.idGenerationSQL}" )
+    private String extIdGenerationSQL;
 
 	@Value("${jms.broker_url}")
 	private String jmsBrokerUrl;
@@ -96,6 +107,18 @@ public class TestConfig {
 				"test-harvester-config.properties") };
 		ppc.setLocations(resources);
 		return ppc;
+	}
+	
+	@Bean(name = "datasource")
+	public DataSource dataSource() {
+		return new EmbeddedDatabaseBuilder()
+				.setType(EmbeddedDatabaseType.H2)
+				// comes from lib project
+				.addScript("classpath:h2/h2setup.sql")
+				// those 2 scripts are loaded from canadensys-data-access
+				.addScript("/script/occurrence/create_occurrence_tables.sql")
+				.addScript("/script/occurrence/create_occurrence_tables_buffer_schema.sql")
+				.build();
 	}
 
 	@Bean(name = "bufferSessionFactory")
@@ -117,6 +140,13 @@ public class TestConfig {
 		return sb;
 	}
 	
+	@Bean(name = "bufferTransactionManager")
+	public HibernateTransactionManager hibernateTransactionManager() {
+		HibernateTransactionManager htmgr = new HibernateTransactionManager();
+		htmgr.setSessionFactory(bufferSessionFactory().getObject());
+		return htmgr;
+	}
+	
 	@Bean
 	public StepControllerIF stepController(){
 		return new StepController();
@@ -126,20 +156,16 @@ public class TestConfig {
 	public NodeStatusController nodeStatusController(){
 		return new NodeStatusController();
 	}
-
+	
+	// ---JOB---
 	@Bean
-	public ItemTaskIF checkProcessingCompletenessTask() {
-		return new CheckHarvestingCompletenessTask();
+	public ImportDwcaJob importDwcaJob() {
+		return new ImportDwcaJob();
 	}
-
+	
 	@Bean
-	public ItemTaskIF cleanBufferTableTask() {
-		return new CleanBufferTableTask();
-	}
-
-	@Bean
-	public ItemTaskIF computeGISDataTask() {
-		return null;
+	public MoveToPublicSchemaJob moveToPublicSchemaJob() {
+		return new MoveToPublicSchemaJob();
 	}
 
 	@Bean
@@ -147,37 +173,38 @@ public class TestConfig {
 		return new ComputeUniqueValueJob();
 	}
 
-	@Bean
-	public ItemTaskIF computeUniqueValueTask() {
-		return new ComputeUniqueValueTask();
-	}
-
-	@Bean(name = "datasource")
-	public DataSource dataSource() {
-		return new EmbeddedDatabaseBuilder()
-				.setType(EmbeddedDatabaseType.H2)
-				// comes from lib project
-				.addScript("classpath:h2/h2setup.sql")
-				// those 2 scripts are loaded from canadensys-data-access
-				.addScript("/script/occurrence/create_occurrence_tables.sql")
-				.addScript("/script/occurrence/create_occurrence_tables_buffer_schema.sql")
-				.build();
-	}
-
-	@Bean
-	public ItemReaderIF<Eml> dwcaEmlReader() {
-		return new DwcaEmlReader();
-	}
-
 	// ---READER wiring---
 	@Bean
 	public ItemReaderIF<OccurrenceRawModel> dwcItemReader() {
 		return new DwcaItemReader();
 	}
-
+	
 	@Bean
-	public ItemTaskIF getResourceInfoTask() {
-		return null;
+	public ItemReaderIF<Eml> dwcaEmlReader() {
+		return new DwcaEmlReader();
+	}
+	
+	@Bean
+	public ItemReaderIF<String> dwcaExtensionInfoReader(){
+		return new DwcaExtensionInfoReader();
+	}
+	
+	//--- MAPPER ---
+	@Bean(name="occurrenceExtensionMapper")
+	public ItemMapperIF<OccurrenceExtensionModel> occurrenceExtensionMapper(){
+		return new OccurrenceExtensionMapper();
+	}
+	
+	/**
+	 * Always return a new instance.
+	 * @return
+	 */
+	@Bean
+	@Scope("prototype")
+	public ItemReaderIF<OccurrenceExtensionModel> dwcaOccurrenceExtensionReader(){
+		DwcaExtensionReader<OccurrenceExtensionModel> dwcaExtReader = new DwcaExtensionReader<OccurrenceExtensionModel>();
+		dwcaExtReader.setMapper(occurrenceExtensionMapper());
+		return dwcaExtReader;
 	}
 
 	// ---Config---
@@ -214,25 +241,46 @@ public class TestConfig {
 		return hvm;
 	}
 
-	@Bean(name = "bufferTransactionManager")
-	public HibernateTransactionManager hibernateTransactionManager() {
-		HibernateTransactionManager htmgr = new HibernateTransactionManager();
-		htmgr.setSessionFactory(bufferSessionFactory().getObject());
-		return htmgr;
-	}
-
-	// ---JOB---
+	// ---TASK ---
 	@Bean
-	public ImportDwcaJob importDwcaJob() {
-		return new ImportDwcaJob();
+	public ItemTaskIF getResourceInfoTask() {
+		return null;
+	}
+	
+	@Bean
+	public ItemTaskIF computeMultimediaDataTask(){
+		return new ComputeMultimediaDataTask();
+	}
+	
+	@Bean
+	public ItemTaskIF computeUniqueValueTask() {
+		return new ComputeUniqueValueTask();
+	}
+	
+	@Bean
+	public ItemTaskIF recordImportTask() {
+		return new RecordImportTask();
 	}
 
-	// ---TASK wiring---
-
-	@Bean(name = "insertResourceContactStep")
-	public StepIF insertResourceContactStep() {
-		return new InsertResourceContactStep();
+	@Bean
+	public ItemTaskIF replaceOldOccurrenceTask() {
+		return new ReplaceOldOccurrenceTask();
 	}
+	@Bean
+	public ItemTaskIF checkProcessingCompletenessTask() {
+		return new CheckHarvestingCompletenessTask();
+	}
+
+	@Bean
+	public ItemTaskIF cleanBufferTableTask() {
+		return new CleanBufferTableTask();
+	}
+
+	@Bean
+	public ItemTaskIF computeGISDataTask() {
+		return null;
+	}
+
 
 	/**
 	 * Always return a new instance. We do not want to share JMS Writer
@@ -253,11 +301,14 @@ public class TestConfig {
 		dwcaLineProcessor.setIdGenerationSQL(idGenerationSQL);
 		return dwcaLineProcessor;
 	}
-
-	@Bean
-	public MoveToPublicSchemaJob moveToPublicSchemaJob() {
-		return new MoveToPublicSchemaJob();
+	@Bean(name="extLineProcessor")
+	public ItemProcessorIF<OccurrenceExtensionModel, OccurrenceExtensionModel> extLineProcessor(){
+		DwcaExtensionLineProcessor dwcaLineProcessor = new DwcaExtensionLineProcessor();
+		dwcaLineProcessor.setIdGenerationSQL(extIdGenerationSQL);
+		return dwcaLineProcessor;
 	}
+
+
 
 	@Bean(name = "occurrenceProcessor")
 	public ItemProcessorIF<OccurrenceRawModel, OccurrenceModel> occurrenceProcessor() {
@@ -272,11 +323,6 @@ public class TestConfig {
 	@Bean
 	public ItemTaskIF prepareDwcaTask() {
 		return new PrepareDwcaTask();
-	}
-
-	@Bean(name = "processInsertOccurrenceStep")
-	public StepIF processInsertOccurrenceStep() {
-		return new ProcessInsertOccurrenceStep();
 	}
 
 	@Bean(name = "publicTransactionManager")
@@ -309,16 +355,6 @@ public class TestConfig {
 		return new RawOccurrenceHibernateWriter();
 	}
 
-	@Bean
-	public ItemTaskIF recordImportTask() {
-		return new RecordImportTask();
-	}
-
-	@Bean
-	public ItemTaskIF replaceOldOccurrenceTask() {
-		return new ReplaceOldOccurrenceTask();
-	}
-
 	@Bean(name = "resourceContactWriter")
 	public ItemWriterIF<ResourceContactModel> resourceContactHibernateWriter() {
 		return new ResourceContactHibernateWriter();
@@ -328,16 +364,39 @@ public class TestConfig {
 	public ItemProcessorIF<Eml, ResourceContactModel> resourceContactProcessor() {
 		return new ResourceContactProcessor();
 	}
+	
+	// ---STEP---
+	
+	@Bean(name = "processInsertOccurrenceStep")
+	public StepIF processInsertOccurrenceStep() {
+		return new ProcessInsertOccurrenceStep();
+	}
+	
+	@Bean(name = "insertResourceContactStep")
+	public StepIF insertResourceContactStep() {
+		return new InsertResourceContactStep();
+	}
 
 	@Bean(name = "streamDwcContentStep")
 	public StepIF streamDwcContentStep() {
 		return new StreamDwcContentStep();
 	}
 
-	// ---STEP---
 	@Bean(name = "streamEmlContentStep")
 	public StepIF streamEmlContentStep() {
 		return new StreamEmlContentStep();
+	}
+	
+	@Bean
+	@Scope("prototype")
+	public StepIF handleDwcaExtensionsStep(){
+		return new HandleDwcaExtensionsStep();
+	}
+	
+	@Bean
+	@Scope("prototype")
+	public StepIF streamDwcExtensionContentStep(){
+		return new StreamDwcExtensionContentStep();
 	}
 
 	@Bean
