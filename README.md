@@ -1,3 +1,5 @@
+Project moved to https://github.com/WingLongitude/lontra-harvester
+
 canadensys-harvester
 ====================
 
