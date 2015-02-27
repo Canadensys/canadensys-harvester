@@ -1,15 +1,13 @@
 package net.canadensys.harvester.main;
 
-import net.canadensys.harvester.config.ProcessingConfig;
+import net.canadensys.harvester.config.UIConfig;
 import net.canadensys.harvester.jms.JMSProducer;
 import net.canadensys.harvester.occurrence.view.OccurrenceHarvesterMainView;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.stereotype.Component;
 
-@Component
 public class JobInitiatorMain{
 	
 	@Autowired
@@ -31,7 +29,7 @@ public class JobInitiatorMain{
 	 * @param args
 	 */
 	public static void main(String newBrokerIp) {
-		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(ProcessingConfig.class);
+		AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(UIConfig.class);
 		JobInitiatorMain jim = ctx.getBean(JobInitiatorMain.class);
 		jim.initiateApp(newBrokerIp);
 	}

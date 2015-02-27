@@ -1,6 +1,8 @@
 package net.canadensys.harvester.occurrence.reader;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,6 +11,7 @@ import net.canadensys.harvester.mapper.DefaultBeanMapper;
 import net.canadensys.harvester.occurrence.SharedParameterEnum;
 import net.canadensys.harvester.occurrence.mock.MockHabitObject;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 /**
@@ -33,5 +36,11 @@ public class DwcaExtensionReaderTest {
 		
 		//ensure that we read default values
 		assertEquals("EN", obj.getLanguage());
+		
+		while(obj != null){
+			assertNotNull(obj.getId());
+			assertFalse(StringUtils.isBlank(obj.getId()));
+			obj = extReader.read();
+		}
 	}
 }

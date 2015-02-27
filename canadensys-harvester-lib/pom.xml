@@ -18,13 +18,14 @@
 		<jackson.version>2.2.3</jackson.version>
 		<spring.version>4.0.2.RELEASE</spring.version>
 		<hibernate.version>4.3.2.Final</hibernate.version>
+		<postgresql.version>9.3-1102-jdbc4</postgresql.version>
 		<jsch.version>0.1.51</jsch.version>
 		<activemq.version>5.10.0</activemq.version>
 		<narwhal.version>1.5.1</narwhal.version>
-		<data-access.version>2.10.1-SNAPSHOT</data-access.version>
+		<data-access.version>2.11.1</data-access.version>
 			
 		<gbif-api.version>0.10</gbif-api.version>
-		<dwca-reader.version>1.14</dwca-reader.version>
+		<dwca-reader.version>1.18</dwca-reader.version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.build.resourceEncoding>UTF-8</project.build.resourceEncoding>
@@ -126,9 +127,9 @@
 
 		<!-- Postgresql -->
 		<dependency>
-			<groupId>postgresql</groupId>
+			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>9.1-901-1.jdbc4</version>
+			<version>${postgresql.version}</version>
 		</dependency>
 
 		<dependency>

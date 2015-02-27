@@ -31,21 +31,21 @@ public class RecordImportTask implements ItemTaskIF{
 	private static final Logger LOGGER = Logger.getLogger(RecordImportTask.class);
 	
 	/**
-	 * @param sharedParameters in:SharedParameterEnum.DATASET_SHORTNAME,SharedParameterEnum.NUMBER_OF_RECORDS
+	 * @param sharedParameters SharedParameterEnum.NUMBER_OF_RECORDS, SharedParameterEnum.SOURCE_FILE_ID required
 	 */
 	@Transactional("publicTransactionManager")
 	@Override
 	public void execute(Map<SharedParameterEnum,Object> sharedParameters){
 		Session session = sessionFactory.getCurrentSession();
 		ImportLogModel importLogModel = new ImportLogModel();
-		String datasetShortname = (String)sharedParameters.get(SharedParameterEnum.DATASET_SHORTNAME);
+		String sourceFileId = (String)sharedParameters.get(SharedParameterEnum.SOURCE_FILE_ID);
 		Integer numberOfRecords = (Integer)sharedParameters.get(SharedParameterEnum.NUMBER_OF_RECORDS);
 		
-		if(datasetShortname == null || numberOfRecords == null){
-			LOGGER.fatal("Misconfigured task : needs  datasetShortname and numberOfRecords");
+		if(sourceFileId == null || numberOfRecords == null){
+			LOGGER.fatal("Misconfigured task : needs  sourceFileId and numberOfRecords");
 			throw new TaskExecutionException("Misconfigured task");
 		}
-		importLogModel.setSourcefileid(datasetShortname);
+		importLogModel.setSourcefileid(sourceFileId);
 		importLogModel.setRecord_quantity(numberOfRecords);
 		importLogModel.setUpdated_by(CURRENT_USER);
 		importLogModel.setEvent_end_date_time(new Date());

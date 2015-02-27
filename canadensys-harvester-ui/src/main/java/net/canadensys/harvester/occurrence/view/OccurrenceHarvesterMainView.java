@@ -42,7 +42,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
 /**
  * Main UI to control the harvester.
@@ -50,7 +49,6 @@ import org.springframework.stereotype.Component;
  * @author canadensys
  * 
  */
-@Component
 public class OccurrenceHarvesterMainView implements PropertyChangeListener {
 
 	private String END_LINE = System.getProperty("line.separator");
@@ -434,7 +432,7 @@ public class OccurrenceHarvesterMainView implements PropertyChangeListener {
 		final SwingWorker<Boolean, Object> swingWorker = new SwingWorker<Boolean, Object>() {
 			@Override
 			public Boolean doInBackground() {
-				stepController.moveToPublicSchema(bufferSchemaTxt.getText());
+				stepController.moveToPublicSchema(bufferSchemaTxt.getText(),resourceToImport.getResource_uuid());
 				return true;
 			}
 

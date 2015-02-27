@@ -25,7 +25,7 @@ public class DwcaReaderTest {
 	public void testDwcaItemReader(){
 		Map<SharedParameterEnum,Object> sharedParameters = new HashMap<SharedParameterEnum, Object>();
 		sharedParameters.put(SharedParameterEnum.DWCA_PATH,"src/test/resources/dwca-qmor-specimens");
-		sharedParameters.put(SharedParameterEnum.DATASET_SHORTNAME,"qmor-specimens");
+		sharedParameters.put(SharedParameterEnum.SOURCE_FILE_ID,"qmor-specimens");
 		
 		ItemReaderIF<OccurrenceRawModel> dwcaItemReader = new DwcaItemReader();
 		dwcaItemReader.openReader(sharedParameters);
@@ -43,7 +43,7 @@ public class DwcaReaderTest {
 	public void testDwcaItemReaderIdColumn(){
 		Map<SharedParameterEnum,Object> sharedParameters = new HashMap<SharedParameterEnum, Object>();
 		sharedParameters.put(SharedParameterEnum.DWCA_PATH,"src/test/resources/dwca-qmor-specimens-id");
-		sharedParameters.put(SharedParameterEnum.DATASET_SHORTNAME,"qmor-specimens");
+		sharedParameters.put(SharedParameterEnum.SOURCE_FILE_ID,"qmor-specimens");
 		
 		ItemReaderIF<OccurrenceRawModel> dwcaItemReader = new DwcaItemReader();
 		dwcaItemReader.openReader(sharedParameters);
@@ -58,7 +58,7 @@ public class DwcaReaderTest {
 	public void testDwcaItemReaderAbort(){
 		Map<SharedParameterEnum,Object> sharedParameters = new HashMap<SharedParameterEnum, Object>();
 		sharedParameters.put(SharedParameterEnum.DWCA_PATH,"src/test/resources/dwca-qmor-specimens");
-		sharedParameters.put(SharedParameterEnum.DATASET_SHORTNAME,"qmor-specimens");
+		sharedParameters.put(SharedParameterEnum.SOURCE_FILE_ID,"qmor-specimens");
 		
 		ItemReaderIF<OccurrenceRawModel> dwcaItemReader = new DwcaItemReader();
 		dwcaItemReader.openReader(sharedParameters);

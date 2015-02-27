@@ -15,7 +15,7 @@ import net.canadensys.harvester.ItemProcessorIF;
 import net.canadensys.harvester.ItemReaderIF;
 import net.canadensys.harvester.ItemTaskIF;
 import net.canadensys.harvester.ItemWriterIF;
-import net.canadensys.harvester.ProcessingStepIF;
+import net.canadensys.harvester.StepIF;
 import net.canadensys.harvester.jms.JMSWriter;
 import net.canadensys.harvester.jms.control.JMSControlConsumer;
 import net.canadensys.harvester.jms.control.JMSControlProducer;
@@ -30,9 +30,9 @@ import net.canadensys.harvester.occurrence.processor.ResourceContactProcessor;
 import net.canadensys.harvester.occurrence.reader.DwcaEmlReader;
 import net.canadensys.harvester.occurrence.reader.DwcaItemReader;
 import net.canadensys.harvester.occurrence.step.InsertResourceContactStep;
-import net.canadensys.harvester.occurrence.step.ProcessInsertOccurrenceStep;
-import net.canadensys.harvester.occurrence.step.StreamDwcContentStep;
 import net.canadensys.harvester.occurrence.step.StreamEmlContentStep;
+import net.canadensys.harvester.occurrence.step.async.ProcessInsertOccurrenceStep;
+import net.canadensys.harvester.occurrence.step.stream.StreamDwcContentStep;
 import net.canadensys.harvester.occurrence.task.CheckHarvestingCompletenessTask;
 import net.canadensys.harvester.occurrence.task.CleanBufferTableTask;
 import net.canadensys.harvester.occurrence.task.ComputeUniqueValueTask;
@@ -189,7 +189,7 @@ public class TestConfig {
 	// ---TASK wiring---
 
 	@Bean(name = "insertResourceContactStep")
-	public ProcessingStepIF insertResourceContactStep() {
+	public StepIF insertResourceContactStep() {
 		return new InsertResourceContactStep();
 	}
 
@@ -240,7 +240,7 @@ public class TestConfig {
 	}
 
 	@Bean(name = "processInsertOccurrenceStep")
-	public ProcessingStepIF processInsertOccurrenceStep() {
+	public StepIF processInsertOccurrenceStep() {
 		return new ProcessInsertOccurrenceStep();
 	}
 
@@ -302,13 +302,13 @@ public class TestConfig {
 	}
 
 	@Bean(name = "streamDwcContentStep")
-	public ProcessingStepIF streamDwcContentStep() {
+	public StepIF streamDwcContentStep() {
 		return new StreamDwcContentStep();
 	}
 
 	// ---STEP---
 	@Bean(name = "streamEmlContentStep")
-	public ProcessingStepIF streamEmlContentStep() {
+	public StepIF streamEmlContentStep() {
 		return new StreamEmlContentStep();
 	}
 }

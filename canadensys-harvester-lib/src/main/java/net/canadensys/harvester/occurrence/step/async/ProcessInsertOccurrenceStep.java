@@ -1,4 +1,4 @@
-package net.canadensys.harvester.occurrence.step;
+package net.canadensys.harvester.occurrence.step.async;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,7 +8,6 @@ import net.canadensys.dataportal.occurrence.model.OccurrenceModel;
 import net.canadensys.dataportal.occurrence.model.OccurrenceRawModel;
 import net.canadensys.harvester.ItemProcessorIF;
 import net.canadensys.harvester.ItemWriterIF;
-import net.canadensys.harvester.ProcessingStepIF;
 import net.canadensys.harvester.exception.WriterException;
 import net.canadensys.harvester.jms.JMSConsumerMessageHandlerIF;
 import net.canadensys.harvester.jms.control.JMSControlProducer;
@@ -28,7 +27,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
  * @author canadensys
  *
  */
-public class ProcessInsertOccurrenceStep implements ProcessingStepIF,JMSConsumerMessageHandlerIF{
+public class ProcessInsertOccurrenceStep extends AbstractReceiverStep implements JMSConsumerMessageHandlerIF{
 	private static final Logger LOGGER = Logger.getLogger(ProcessInsertOccurrenceStep.class);
 	
 	@Autowired
@@ -69,12 +68,6 @@ public class ProcessInsertOccurrenceStep implements ProcessingStepIF,JMSConsumer
 		errorReporter.close();
 	}
 	
-	/**
-	 * No implemented, async step
-	 */
-	@Override
-	public void doStep() {};
-	
 	@Override
 	public Class<?> getMessageClass() {
 		return ProcessOccurrenceMessage.class;
@@ -114,5 +107,11 @@ public class ProcessInsertOccurrenceStep implements ProcessingStepIF,JMSConsumer
 	@Override
 	public String getTitle() {
 		return "Inserting and processing occurrence data";
+	}
+
+	@Override
+	public void cancel() {
+		// TODO Auto-generated method stub
+		
 	}
 }

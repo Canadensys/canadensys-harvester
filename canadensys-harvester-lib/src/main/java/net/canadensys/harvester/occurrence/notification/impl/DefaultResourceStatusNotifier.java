@@ -56,7 +56,6 @@ public class DefaultResourceStatusNotifier implements ResourceStatusNotifierIF {
 		String iptAddress;
 		URL iptURL;
 		for(ResourceModel currResource : resourcesList){
-			currResource.getKey();
 			//we deduce the RSS feed address from the archive URL. This may become a problem in the future.
 			iptAddress = StringUtils.substringBeforeLast(currResource.getArchive_url(), "/") + IPT_RSS_SUFFIX;
 			if(!feedModelByIPTAddress.containsKey(iptAddress)){
@@ -71,12 +70,12 @@ public class DefaultResourceStatusNotifier implements ResourceStatusNotifierIF {
 			List<IPTFeedModel> feedEntryList = feedModelByIPTAddress.get(iptAddress);
 			String resourceKey;
 			ImportLogModel lastImportLog;
-			if(StringUtils.isNotBlank(currResource.getKey())){
+			if(StringUtils.isNotBlank(currResource.getResource_uuid())){
 				for(IPTFeedModel currFeed : feedEntryList){
 					//strip the version from the URI 
 					resourceKey = StringUtils.substringBeforeLast(currFeed.getUri(),"/");
 					
-					if(currResource.getKey().equals(resourceKey)){
+					if(currResource.getResource_uuid().equals(resourceKey)){
 						lastImportLog = importLogDAO.loadLastFrom(currResource.getSourcefileid());
 						if(lastImportLog != null){
 							//compare date

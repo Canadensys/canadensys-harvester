@@ -4,7 +4,6 @@ import java.util.Map;
 
 import net.canadensys.dataportal.occurrence.model.ResourceContactModel;
 import net.canadensys.harvester.ItemWriterIF;
-import net.canadensys.harvester.ProcessingStepIF;
 import net.canadensys.harvester.exception.WriterException;
 import net.canadensys.harvester.jms.JMSConsumerMessageHandlerIF;
 import net.canadensys.harvester.jms.control.JMSControlProducer;
@@ -12,6 +11,7 @@ import net.canadensys.harvester.message.ProcessingMessageIF;
 import net.canadensys.harvester.message.control.NodeErrorControlMessage;
 import net.canadensys.harvester.occurrence.SharedParameterEnum;
 import net.canadensys.harvester.occurrence.message.SaveResourceContactMessage;
+import net.canadensys.harvester.occurrence.step.async.AbstractReceiverStep;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
  * @author canadensys
  *
  */
-public class InsertResourceContactStep implements ProcessingStepIF,JMSConsumerMessageHandlerIF{
+public class InsertResourceContactStep extends AbstractReceiverStep implements JMSConsumerMessageHandlerIF {
 
 	@Autowired
 	@Qualifier("resourceContactWriter")
@@ -32,7 +32,7 @@ public class InsertResourceContactStep implements ProcessingStepIF,JMSConsumerMe
 	private JMSControlProducer errorReporter;
 
 	@Override
-	public void preStep(Map<SharedParameterEnum,Object> sharedParameters) throws IllegalStateException{
+	public void preStep(Map<SharedParameterEnum,Object> sharedParameters) throws IllegalStateException {
 		if(writer == null){
 			throw new IllegalStateException("No writer defined");
 		}
@@ -68,12 +68,6 @@ public class InsertResourceContactStep implements ProcessingStepIF,JMSConsumerMe
 		return true;
 	}
 	
-	/**
-	 * No implemented, async step
-	 */
-	@Override
-	public void doStep() {};
-	
 	public void setWriter(ItemWriterIF<ResourceContactModel> writer){
 		this.writer = writer;
 	}
@@ -81,5 +75,11 @@ public class InsertResourceContactStep implements ProcessingStepIF,JMSConsumerMe
 	@Override
 	public String getTitle() {
 		return "Inserting resource contact data";
+	}
+
+	@Override
+	public void cancel() {
+		// TODO Auto-generated method stub
+		
 	}
 }

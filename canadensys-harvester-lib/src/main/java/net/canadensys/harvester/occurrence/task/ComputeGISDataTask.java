@@ -31,32 +31,32 @@ public class ComputeGISDataTask implements ItemTaskIF{
 	private SessionFactory sessionFactory;
 	
 	/**
-	 * @param sharedParameters in:DATASET_SHORTNAME
+	 * @param @param sharedParameters SharedParameterEnum.SOURCE_FILE_ID required
 	 */
 	@Transactional("publicTransactionManager")
 	@Override
 	public void execute(Map<SharedParameterEnum,Object> sharedParameters){
-		String datasetShortname = (String)sharedParameters.get(SharedParameterEnum.DATASET_SHORTNAME);
+		String sourceFileId = (String)sharedParameters.get(SharedParameterEnum.SOURCE_FILE_ID);
 		Session session = sessionFactory.getCurrentSession();
 		
-		if(datasetShortname == null){
-			LOGGER.fatal("Misconfigured task : needs  datasetShortname");
+		if(sourceFileId == null){
+			LOGGER.fatal("Misconfigured task : needs  sourceFileId");
 			throw new TaskExecutionException("Misconfigured task");
 		}
 		//update the_geom
 		SQLQuery query = session.createSQLQuery("UPDATE buffer.occurrence SET the_geom = st_geometryfromtext('POINT('||decimallongitude||' '|| decimallatitude ||')',4326) " +
 				"WHERE sourcefileid=? AND decimallatitude IS NOT NULL AND decimallongitude IS NOT NULL");
-		query.setString(0, datasetShortname);
+		query.setString(0, sourceFileId);
 		query.executeUpdate();
 		
 		//update the_geom_webmercator
 		query = session.createSQLQuery("UPDATE buffer.occurrence SET the_geom_webmercator = st_transform_null(the_geom,3857) WHERE sourcefileid=? AND the_geom IS NOT NULL");
-		query.setString(0, datasetShortname);
+		query.setString(0, sourceFileId);
 		query.executeUpdate();
 		
 		//update the_shifted_geom
 		query = session.createSQLQuery("UPDATE buffer.occurrence SET the_shifted_geom = ST_Shift_Longitude(the_geom) WHERE sourcefileid=? AND the_geom IS NOT NULL");
-		query.setString(0, datasetShortname);
+		query.setString(0, sourceFileId);
 		query.executeUpdate();
 	}
 	

@@ -35,7 +35,7 @@ public class StepControllerTest {
 
 		resourceModel.setName("Test resource");
 		resourceModel.setArchive_url("http://locahost/testname.zip");
-		resourceModel.setKey("kagf93u");
+		resourceModel.setResource_uuid("kagf93u");
 		resourceModel.setSourcefileid("test-resource");
 
 		// save it
@@ -47,7 +47,7 @@ public class StepControllerTest {
 		for (ResourceModel currModel : resourceModelList) {
 			if ("test-resource".equals(currModel.getSourcefileid())) {
 				found = true;
-				assertEquals("kagf93u", currModel.getKey());
+				assertEquals("kagf93u", currModel.getResource_uuid());
 			}
 		}
 		assertTrue(found);

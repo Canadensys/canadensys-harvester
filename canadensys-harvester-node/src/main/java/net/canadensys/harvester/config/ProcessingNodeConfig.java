@@ -5,44 +5,37 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
-import net.canadensys.dataportal.occurrence.dao.ImportLogDAO;
+import net.canadensys.dataportal.occurrence.dao.OccurrenceExtensionDAO;
+import net.canadensys.dataportal.occurrence.dao.impl.HibernateOccurrenceExtensionDAO;
 import net.canadensys.dataportal.occurrence.model.ImportLogModel;
+import net.canadensys.dataportal.occurrence.model.OccurrenceExtensionModel;
 import net.canadensys.dataportal.occurrence.model.OccurrenceModel;
 import net.canadensys.dataportal.occurrence.model.OccurrenceRawModel;
 import net.canadensys.dataportal.occurrence.model.ResourceContactModel;
 import net.canadensys.harvester.ItemProcessorIF;
-import net.canadensys.harvester.ItemReaderIF;
-import net.canadensys.harvester.ItemTaskIF;
 import net.canadensys.harvester.ItemWriterIF;
-import net.canadensys.harvester.LongRunningTaskIF;
-import net.canadensys.harvester.ProcessingStepIF;
+import net.canadensys.harvester.StepIF;
+import net.canadensys.harvester.controller.VersionController;
 import net.canadensys.harvester.jms.JMSConsumer;
-import net.canadensys.harvester.jms.JMSWriter;
 import net.canadensys.harvester.jms.control.JMSControlConsumer;
 import net.canadensys.harvester.jms.control.JMSControlProducer;
-import net.canadensys.harvester.occurrence.dao.IPTFeedDAO;
-import net.canadensys.harvester.occurrence.job.ComputeUniqueValueJob;
-import net.canadensys.harvester.occurrence.job.ImportDwcaJob;
-import net.canadensys.harvester.occurrence.job.MoveToPublicSchemaJob;
-import net.canadensys.harvester.occurrence.notification.ResourceStatusNotifierIF;
+import net.canadensys.harvester.main.ProcessingNodeMain;
 import net.canadensys.harvester.occurrence.processor.DwcaLineProcessor;
 import net.canadensys.harvester.occurrence.processor.OccurrenceProcessor;
 import net.canadensys.harvester.occurrence.processor.ResourceContactProcessor;
-import net.canadensys.harvester.occurrence.reader.DwcaItemReader;
 import net.canadensys.harvester.occurrence.step.InsertResourceContactStep;
-import net.canadensys.harvester.occurrence.step.ProcessInsertOccurrenceStep;
+import net.canadensys.harvester.occurrence.step.async.AsyncManageOccurrenceExtensionStep;
+import net.canadensys.harvester.occurrence.step.async.ProcessInsertOccurrenceStep;
 import net.canadensys.harvester.occurrence.writer.OccurrenceHibernateWriter;
 import net.canadensys.harvester.occurrence.writer.RawOccurrenceHibernateWriter;
 import net.canadensys.harvester.occurrence.writer.ResourceContactHibernateWriter;
+import net.canadensys.harvester.writer.GenericHibernateWriter;
 
 import org.gbif.metadata.eml.Eml;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.orm.hibernate4.HibernateTransactionManager;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
@@ -58,7 +51,6 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
  * 
  */
 @Configuration
-@ComponentScan(basePackages = "net.canadensys.harvester", excludeFilters = { @Filter(type = FilterType.CUSTOM, value = { ExcludeTestClassesTypeFilter.class }) })
 @EnableTransactionManagement
 public class ProcessingNodeConfig {
 	
@@ -92,43 +84,7 @@ public class ProcessingNodeConfig {
 		ppc.setLocation(new FileSystemResource(propertiesFileLocation));
 		return ppc;
 	}
-
-	@Bean(name = "bufferSessionFactory")
-	public LocalSessionFactoryBean bufferSessionFactory() {
-		LocalSessionFactoryBean sb = new LocalSessionFactoryBean();
-		sb.setDataSource(dataSource());
-		sb.setAnnotatedClasses(new Class[] { OccurrenceRawModel.class, OccurrenceModel.class, ImportLogModel.class, ResourceContactModel.class });
-
-		Properties hibernateProperties = new Properties();
-		hibernateProperties.setProperty("hibernate.dialect", hibernateDialect);
-		hibernateProperties.setProperty("hibernate.show_sql", hibernateShowSql);
-		hibernateProperties.setProperty("hibernate.default_schema", hibernateBufferSchema);
-		hibernateProperties.setProperty("hibernate.connection.autocommit", "false");
-		hibernateProperties.setProperty("javax.persistence.validation.mode", "none");
-		sb.setHibernateProperties(hibernateProperties);
-		return sb;
-	}
-
-	@Bean
-	public LongRunningTaskIF checkProcessingCompletenessTask() {
-		return null;
-	}
-
-	@Bean
-	public ItemTaskIF cleanBufferTableTask() {
-		return null;
-	}
-
-	@Bean
-	public ItemTaskIF computeGISDataTask() {
-		return null;
-	}
-
-	@Bean
-	public ComputeUniqueValueJob computeUniqueValueJob() {
-		return null;
-	}
-
+	
 	@Bean(name = "datasource")
 	public DataSource dataSource() {
 		ComboPooledDataSource ds = new ComboPooledDataSource();
@@ -144,123 +100,43 @@ public class ProcessingNodeConfig {
 		return ds;
 	}
 
+	@Bean(name = {"bufferSessionFactory","sessionFactory"})
+	public LocalSessionFactoryBean bufferSessionFactory() {
+		LocalSessionFactoryBean sb = new LocalSessionFactoryBean();
+		sb.setDataSource(dataSource());
+		sb.setAnnotatedClasses(new Class[] { OccurrenceRawModel.class, OccurrenceModel.class, ImportLogModel.class,
+				OccurrenceExtensionModel.class, ResourceContactModel.class });
+
+		Properties hibernateProperties = new Properties();
+		hibernateProperties.setProperty("hibernate.dialect", hibernateDialect);
+		hibernateProperties.setProperty("hibernate.show_sql", hibernateShowSql);
+		hibernateProperties.setProperty("hibernate.default_schema", hibernateBufferSchema);
+		hibernateProperties.setProperty("hibernate.connection.autocommit", "false");
+		hibernateProperties.setProperty("javax.persistence.validation.mode", "none");
+		sb.setHibernateProperties(hibernateProperties);
+		return sb;
+	}
+	
+	//test
 	@Bean
-	public ItemReaderIF<Eml> dwcaEmlReader() {
-		return null;
+	public OccurrenceExtensionDAO occurrenceExtensionDAO() {
+		HibernateOccurrenceExtensionDAO occurrenceExtensionDAO = new HibernateOccurrenceExtensionDAO();
+		//occurrenceExtensionDAO.setSessionFactory(bufferSessionFactory().getObject());
+		return occurrenceExtensionDAO;
 	}
-
-	// ---READER wiring---
-	@Bean
-	public ItemReaderIF<OccurrenceRawModel> dwcaItemReader() {
-		return new DwcaItemReader();
-	}
-
-	@Bean
-	public JMSControlConsumer errorReceiver() {
-		return null;
-	}
-
-	@Bean
-	public JMSControlProducer errorReporter() {
-		return new JMSControlProducer(jmsBrokerUrl);
-	}
-
-	@Bean
-	public ItemTaskIF findUsedDwcaTermTask() {
-		return null;
-	}
-
-	public String getDbUrl() {
-		return dbUrl;
-	}
-
-	@Bean
-	public ItemTaskIF getResourceInfoTask() {
-		return null;
-	}
-
+	
 	@Bean(name = "bufferTransactionManager")
 	public HibernateTransactionManager hibernateTransactionManager() {
 		HibernateTransactionManager htmgr = new HibernateTransactionManager();
 		htmgr.setSessionFactory(bufferSessionFactory().getObject());
 		return htmgr;
 	}
-
-	// ---JOB---
-	// Nodes should not initiate jobs
+	
 	@Bean
-	public ImportDwcaJob importDwcaJob() {
-		return null;
-	}
-
-	@Bean
-	public ImportLogDAO importLogDAO() {
-		return null;
-	}
-
-	@Bean(name = "insertResourceContactStep")
-	public ProcessingStepIF insertResourceContactStep() {
-		return new InsertResourceContactStep();
-	}
-
-	// ---DAO---
-	@Bean
-	public IPTFeedDAO iptFeedDAO() {
-		return null;
-	}
-
-	@Bean(name = "jmsConsumer")
-	public JMSConsumer jmsConsumer() {
-		return new JMSConsumer(jmsBrokerUrl);
+	public ProcessingNodeMain processingNodeMain(){
+		return new ProcessingNodeMain();
 	}
 	
-	@Bean(destroyMethod="close")
-	public JMSControlConsumer controlMessageReceiver(){
-		return new JMSControlConsumer(jmsBrokerUrl);
-	}
-
-	/**
-	 * node should not use this
-	 * 
-	 * @return
-	 */
-	@Bean
-	public JMSWriter jmsWriter() {
-		return null;
-	}
-
-	// ---PROCESSOR wiring---
-	@Bean(name = "lineProcessor")
-	public ItemProcessorIF<OccurrenceRawModel, OccurrenceRawModel> lineProcessor() {
-		return new DwcaLineProcessor();
-	}
-
-	@Bean
-	public MoveToPublicSchemaJob moveToPublicSchemaJob() {
-		return null;
-	}
-
-	@Bean(name = "occurrenceProcessor")
-	public ItemProcessorIF<OccurrenceRawModel, OccurrenceModel> occurrenceProcessor() {
-		return new OccurrenceProcessor();
-	}
-
-	@Bean(name = "occurrenceWriter")
-	public ItemWriterIF<OccurrenceModel> occurrenceWriter() {
-		return new OccurrenceHibernateWriter();
-	}
-
-	// ---Unused TASK in processing node---
-	@Bean
-	public ItemTaskIF prepareDwcaTask() {
-		return null;
-	}
-
-	@Bean(name = "processInsertOccurrenceStep")
-	public ProcessingStepIF processInsertOccurrenceStep() {
-		return new ProcessInsertOccurrenceStep();
-	}
-
 	@Bean(name = "publicTransactionManager")
 	public HibernateTransactionManager publicHibernateTransactionManager() {
 		HibernateTransactionManager htmgr = new HibernateTransactionManager();
@@ -282,7 +158,63 @@ public class ProcessingNodeConfig {
 		return sb;
 	}
 
-	// ---WRITER wiring---
+	public String getDbUrl() {
+		return dbUrl;
+	}
+
+	// ---JOB---
+	// Nodes should not initiate jobs
+
+	// ---JMS---
+	@Bean
+	public JMSControlProducer errorReporter() {
+		return new JMSControlProducer(jmsBrokerUrl);
+	}
+
+	@Bean(name = "jmsConsumer")
+	public JMSConsumer jmsConsumer() {
+		return new JMSConsumer(jmsBrokerUrl);
+	}
+	
+	@Bean(destroyMethod="close")
+	public JMSControlConsumer controlMessageReceiver(){
+		return new JMSControlConsumer(jmsBrokerUrl);
+	}
+
+	// ---PROCESSOR wiring---
+	@Bean(name = "lineProcessor")
+	public ItemProcessorIF<OccurrenceRawModel, OccurrenceRawModel> lineProcessor() {
+		return new DwcaLineProcessor();
+	}
+
+	@Bean(name = "occurrenceProcessor")
+	public ItemProcessorIF<OccurrenceRawModel, OccurrenceModel> occurrenceProcessor() {
+		return new OccurrenceProcessor();
+	}
+
+
+	// ---STEP---
+	@Bean(name = "processInsertOccurrenceStep")
+	public StepIF processInsertOccurrenceStep() {
+		return new ProcessInsertOccurrenceStep();
+	}
+	
+	@Bean(name = "insertResourceContactStep")
+	public StepIF insertResourceContactStep() {
+		return new InsertResourceContactStep();
+	}
+	
+	@Bean
+	public StepIF asyncManageOccurrenceExtensionStep() {
+		return new AsyncManageOccurrenceExtensionStep();
+	}
+
+	// ---WRITER---
+	@Bean(name = "occurrenceWriter")
+	public ItemWriterIF<OccurrenceModel> occurrenceWriter() {
+		return new OccurrenceHibernateWriter();
+	}
+	
 	@Bean(name = "rawOccurrenceWriter")
 	public ItemWriterIF<OccurrenceRawModel> rawOccurrenceWriter() {
 		return new RawOccurrenceHibernateWriter();
@@ -292,36 +224,20 @@ public class ProcessingNodeConfig {
 	public ItemWriterIF<ResourceContactModel> resourceContactHibernateWriter() {
 		return new ResourceContactHibernateWriter();
 	}
+	
+	@Bean(name="occurrenceExtensionWriter")
+	public ItemWriterIF<OccurrenceExtensionModel> occurrenceExtensionWriter(){
+		return new GenericHibernateWriter<OccurrenceExtensionModel>();
+	}
 
 	@Bean(name = "resourceContactProcessor")
 	public ItemProcessorIF<Eml, ResourceContactModel> resourceContactProcessor() {
 		return new ResourceContactProcessor();
-	} 
-
+	}
+	
 	@Bean
-	public ResourceStatusNotifierIF resourceStatusNotifierIF() {
-		return null;
-	}
-
-	@Bean(name = "streamDwcContentStep")
-	public ProcessingStepIF streamDwcContentStep() {
-		return null;
-	}
-
-	// ---STEP---
-	@Bean(name = "streamEmlContentStep")
-	public ProcessingStepIF streamEmlContentStep() {
-		return null;
-	}
-
-	@Bean(name = "streamOccurrenceForStatsStep")
-	public ProcessingStepIF streamOccurrenceForStatsStep() {
-		return null;
-	}
-
-	@Bean(name = "updateResourceContactStep")
-	public ProcessingStepIF updateResourceContactStep() {
-		return null;
+	public VersionController versionController(){
+		return new VersionController();
 	}
 
 	@Bean(name="currentVersion")

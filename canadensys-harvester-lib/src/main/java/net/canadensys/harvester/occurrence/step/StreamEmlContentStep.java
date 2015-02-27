@@ -7,11 +7,12 @@ import net.canadensys.dataportal.occurrence.model.ResourceContactModel;
 import net.canadensys.harvester.ItemProcessorIF;
 import net.canadensys.harvester.ItemReaderIF;
 import net.canadensys.harvester.ItemWriterIF;
-import net.canadensys.harvester.ProcessingStepIF;
+import net.canadensys.harvester.StepResult;
 import net.canadensys.harvester.exception.WriterException;
 import net.canadensys.harvester.message.ProcessingMessageIF;
 import net.canadensys.harvester.occurrence.SharedParameterEnum;
 import net.canadensys.harvester.occurrence.message.SaveResourceContactMessage;
+import net.canadensys.harvester.occurrence.step.stream.AbstractStreamStep;
 
 import org.gbif.metadata.eml.Eml;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
  * @author canadensys
  *
  */
-public class StreamEmlContentStep implements ProcessingStepIF{
+public class StreamEmlContentStep extends AbstractStreamStep {
 
 	@Autowired
 	@Qualifier("dwcaEmlReader")
@@ -64,7 +65,7 @@ public class StreamEmlContentStep implements ProcessingStepIF{
 	}
 
 	@Override
-	public void doStep() {
+	public StepResult doStep() {
 		//For now, we only read and stream the resource contact
 		SaveResourceContactMessage srcm = new SaveResourceContactMessage();
 		srcm.setWhen(Calendar.getInstance().getTime().toString());
@@ -79,10 +80,17 @@ public class StreamEmlContentStep implements ProcessingStepIF{
 		} catch (WriterException e) {
 			e.printStackTrace();
 		}
+		return new StepResult(1);
 	}
 
 	@Override
 	public String getTitle() {
 		return "Streaming EML";
+	}
+
+	@Override
+	public void cancel() {
+		// TODO Auto-generated method stub
+		
 	}
 }

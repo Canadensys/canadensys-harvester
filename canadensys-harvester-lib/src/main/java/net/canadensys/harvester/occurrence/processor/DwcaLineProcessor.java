@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * Processing each line read from a Darwin Core Archive.
- * Attribute a unique id to link the raw and processed model together.
+ * Assign an unique id to link the raw and processed model together.
  * NOT thread safe
  * @author canadenys
  *
@@ -65,13 +65,13 @@ public class DwcaLineProcessor implements ItemProcessorIF<OccurrenceRawModel, Oc
 	@Override
 	public OccurrenceRawModel process(OccurrenceRawModel occModel, Map<SharedParameterEnum,Object> sharedParameters) {
 		//TODO could be done at init phase?
-		String datasetShortname = (String)sharedParameters.get(SharedParameterEnum.DATASET_SHORTNAME);
+		String sourceFileId = (String)sharedParameters.get(SharedParameterEnum.SOURCE_FILE_ID);
         
-        if(datasetShortname == null){
+        if(sourceFileId == null){
 			LOGGER.fatal("Misconfigured processor : needs  sourceFileId");
 			throw new TaskExecutionException("Misconfigured processor");
 		}
-		occModel.setSourcefileid(datasetShortname);
+		occModel.setSourcefileid(sourceFileId);
 
 		if(nextId == null || idPoll.isEmpty()){
 			try{

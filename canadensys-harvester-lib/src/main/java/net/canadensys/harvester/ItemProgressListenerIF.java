@@ -13,9 +13,9 @@ public interface ItemProgressListenerIF {
 	 * @param current
 	 * @param total
 	 */
-	public void onProgress(String context,int current,int total);
+	public void onProgress(String context, int current, int total);
 	
-	public void onSuccess();
-	public void onCancel();
-	public void onError(Throwable t);
+	public void onSuccess(String context);
+	public void onCancel(String context);
+	public void onError(String context, Throwable t);
 }

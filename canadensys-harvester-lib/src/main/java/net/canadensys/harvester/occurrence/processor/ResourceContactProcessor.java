@@ -31,7 +31,7 @@ public class ResourceContactProcessor implements ItemProcessorIF<Eml, ResourceCo
 	@Override
 	public ResourceContactModel process(Eml eml, Map<SharedParameterEnum, Object> sharedParameters)
 			throws ProcessException {
-		String sourceFileId = (String)sharedParameters.get(SharedParameterEnum.DATASET_SHORTNAME);
+		String sourceFileId = (String)sharedParameters.get(SharedParameterEnum.SOURCE_FILE_ID);
         
         if(sourceFileId == null){
 			LOGGER.fatal("Misconfigured processor : needs  sourceFileId");

@@ -45,7 +45,6 @@ public class GenericAsyncStepTest {
 		
 		//The list of object that would have been written to the database
 		List<MockHabitObject> objList = writer.getContent();
-		System.out.println(objList.get(0).getClass());
 		MockHabitObject firstObj = objList.get(0);
 		
 		//ensure class name are preserved
@@ -77,7 +76,6 @@ public class GenericAsyncStepTest {
 		
 		//The list of object that would have been written to the database
 		List<MockHabitObject> objList = writer.getContent();
-		System.out.println(objList.get(0).getClass());
 		MockHabitObject firstObj = objList.get(0);
 		
 		//ensure class name are preserved

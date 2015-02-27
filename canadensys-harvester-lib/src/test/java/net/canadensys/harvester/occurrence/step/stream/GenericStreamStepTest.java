@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.canadensys.harvester.jms.JMSConsumerMessageHandlerIF;
 import net.canadensys.harvester.mapper.DefaultBeanMapper;
 import net.canadensys.harvester.message.ProcessingMessageIF;
 import net.canadensys.harvester.occurrence.SharedParameterEnum;
@@ -34,17 +33,15 @@ public class GenericStreamStepTest {
 		Map<SharedParameterEnum,Object> sharedParameters = new HashMap<SharedParameterEnum, Object>();
 		sharedParameters.put(SharedParameterEnum.DWCA_PATH,"src/test/resources/dwca-vascan-checklist");
 		sharedParameters.put(SharedParameterEnum.DWCA_EXTENSION_TYPE,"description");
+		sharedParameters.put(SharedParameterEnum.RESOURCE_UUID,"1");
 		
 		//setup reader
 		DwcaExtensionReader<MockHabitObject> extReader = new DwcaExtensionReader<MockHabitObject>();
 		extReader.setMapper(new DefaultBeanMapper<MockHabitObject>(MockHabitObject.class));
 		
+		streamHabitStep.addAsyncReceiverStep(GenericAsyncStep.class);
 		streamHabitStep.setReader(extReader);
 		streamHabitStep.setWriter(writer);
-		
-		List<Class<? extends JMSConsumerMessageHandlerIF>> msgHandlerClassList = new ArrayList<Class<? extends JMSConsumerMessageHandlerIF>>();
-		msgHandlerClassList.add(GenericAsyncStep.class);
-		streamHabitStep.setMessageClasses(msgHandlerClassList);
 		
 		//run the step
 		streamHabitStep.preStep(sharedParameters);

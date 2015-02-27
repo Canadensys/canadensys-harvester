@@ -91,8 +91,10 @@ public class OccurrenceProcessor implements ItemProcessorIF<OccurrenceRawModel, 
 		processedModel.setAssociatedsequences(rawModel.getAssociatedsequences());
 		
 		processedModel.setCatalognumber(rawModel.getCatalognumber());
+		processedModel.setOccurrenceid(rawModel.getOccurrenceid());
 		processedModel.setCollectioncode(rawModel.getCollectioncode());
 		processedModel.set_references(normalizeURLSeparator(rawModel.get_references()));
+		processedModel.setBibliographiccitation(rawModel.getBibliographiccitation());
 		
 		//Country processing
 		countryProcessor.processBean(rawModel, processedModel, null, null);
@@ -143,10 +145,11 @@ public class OccurrenceProcessor implements ItemProcessorIF<OccurrenceRawModel, 
 		processedModel.setInstitutioncode(rawModel.getInstitutioncode());
 		processedModel.setTaxonrank(rawModel.getTaxonrank());
 		processedModel.setEventdate(rawModel.getEventdate());
-		processedModel.setHasmedia(!StringUtils.isBlank(rawModel.getAssociatedmedia()));
 		
+		processedModel.setHasmedia(StringUtils.isNotBlank(rawModel.getAssociatedmedia()));
 		processedModel.setTypestatus(rawModel.getTypestatus());
 		processedModel.setHastypestatus(StringUtils.isNotBlank(rawModel.getTypestatus()));
+		processedModel.setHasassociatedsequences(StringUtils.isNotBlank(rawModel.getAssociatedsequences()));
 		
 		processScientificName(rawModel, processedModel);
 		
@@ -199,8 +202,9 @@ public class OccurrenceProcessor implements ItemProcessorIF<OccurrenceRawModel, 
 		occModel.setRawscientificname(rawScientificName);
 		
 		if(StringUtils.isNotBlank(rawScientificName)){
-			//remove all whitespace except space char
-			rawScientificName = CHAR_MATCHER_WHITESPACE.removeFrom(rawScientificName);
+			//replace all whitespace except space char
+			rawScientificName = CHAR_MATCHER_WHITESPACE.replaceFrom(rawScientificName, " ");
+			rawScientificName = StringUtils.normalizeSpace(rawScientificName);
 			//ensure it's not 'quoted'
 			rawScientificName = StringUtils.removeStart(rawScientificName, "\"");
 			rawScientificName = StringUtils.removeEnd(rawScientificName, "\"");

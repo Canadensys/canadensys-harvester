@@ -8,14 +8,12 @@ import net.canadensys.harvester.message.control.VersionControlMessage;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * This controller will shut down the node if its version is not matching the manager version.
  * @author cgendreau
  *
  */
-@Component("versionController")
 public class VersionController  implements JMSControlConsumerMessageHandlerIF {
 	
 	private static final Logger LOGGER = Logger.getLogger(VersionController.class);

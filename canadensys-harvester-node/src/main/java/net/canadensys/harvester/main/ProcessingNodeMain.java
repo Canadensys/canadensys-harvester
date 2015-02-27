@@ -3,7 +3,8 @@ package net.canadensys.harvester.main;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.canadensys.harvester.ProcessingStepIF;
+import net.canadensys.dataportal.occurrence.dao.OccurrenceExtensionDAO;
+import net.canadensys.harvester.StepIF;
 import net.canadensys.harvester.config.ProcessingNodeConfig;
 import net.canadensys.harvester.controller.VersionController;
 import net.canadensys.harvester.jms.JMSConsumer;
@@ -35,17 +36,23 @@ public class ProcessingNodeMain {
 	private ProcessingNodeConfig nodeConfig;
 	
 	@Autowired
-	private ProcessingStepIF processInsertOccurrenceStep;
+	private StepIF processInsertOccurrenceStep;
 
 	@Autowired
-	private ProcessingStepIF insertResourceContactStep;
+	private StepIF insertResourceContactStep;
+	
+	@Autowired
+	OccurrenceExtensionDAO occurrenceExtensionDAO;
+	
+	@Autowired
+	private StepIF asyncManageOccurrenceExtensionStep;
 
-	private final List<ProcessingStepIF> registeredSteps;
+	private final List<StepIF> registeredSteps;
 	private final List<JMSConsumerMessageHandlerIF> registeredMsgHandlers;
 
 	public ProcessingNodeMain() {
 		registeredMsgHandlers = new ArrayList<JMSConsumerMessageHandlerIF>();
-		registeredSteps = new ArrayList<ProcessingStepIF>();
+		registeredSteps = new ArrayList<StepIF>();
 	}
 
 	/**
@@ -56,7 +63,7 @@ public class ProcessingNodeMain {
 	 * @param additionalMessageHandler
 	 *            user defined message handler (optional)
 	 */
-	public <T extends JMSConsumerMessageHandlerIF & ProcessingStepIF> void initiate(
+	public <T extends JMSConsumerMessageHandlerIF & StepIF> void initiate(
 			String brokerURL, List<T> additionalMessageHandler) {
 		// check if we need to set a new broker URL
 		if (StringUtils.isNotBlank(brokerURL)) {
@@ -67,13 +74,15 @@ public class ProcessingNodeMain {
 		System.out.println("Database location : " + nodeConfig.getDbUrl());
 
 		// Declare step handlers (maybe this should be configurable?)
-		registeredMsgHandlers
-				.add((JMSConsumerMessageHandlerIF) processInsertOccurrenceStep);
+		registeredMsgHandlers.add((JMSConsumerMessageHandlerIF) processInsertOccurrenceStep);
 		registeredSteps.add(processInsertOccurrenceStep);
 
-		registeredMsgHandlers
-				.add((JMSConsumerMessageHandlerIF) insertResourceContactStep);
+		registeredMsgHandlers.add((JMSConsumerMessageHandlerIF) insertResourceContactStep);
 		registeredSteps.add(insertResourceContactStep);
+		
+		registeredMsgHandlers.add((JMSConsumerMessageHandlerIF) asyncManageOccurrenceExtensionStep);
+		registeredSteps.add(asyncManageOccurrenceExtensionStep);
+		
 
 		if (additionalMessageHandler != null) {
 			registeredMsgHandlers.addAll(additionalMessageHandler);
@@ -86,7 +95,7 @@ public class ProcessingNodeMain {
 		}
 
 		// Then, init all the steps
-		for (ProcessingStepIF currStep : registeredSteps) {
+		for (StepIF currStep : registeredSteps) {
 			// due to the async behavior, we do not use any sharedParameters (at
 			// least for now)
 			currStep.preStep(null);
@@ -128,6 +137,6 @@ public class ProcessingNodeMain {
 	 * 
 	 */
 	private interface MessageHandlerStep extends JMSConsumerMessageHandlerIF,
-			ProcessingStepIF {
+			StepIF {
 	}
 }

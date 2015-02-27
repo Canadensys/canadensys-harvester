@@ -35,11 +35,12 @@ public abstract class AbstractProcessingJob {
 	 * @param sharedParameters
 	 * @throws IllegalStateException from ProcessingStepIF.preStep
 	 */
-	protected void executeStepSequentially(ProcessingStepIF step, Map<SharedParameterEnum,Object> sharedParameters)
+	protected StepResult executeStepSequentially(StepIF step, Map<SharedParameterEnum,Object> sharedParameters)
 			throws IllegalStateException{
 		step.preStep(sharedParameters);
-		step.doStep();
+		StepResult stepReturn = step.doStep();
 		step.postStep();
+		return stepReturn;
 	}
 	
 	/**

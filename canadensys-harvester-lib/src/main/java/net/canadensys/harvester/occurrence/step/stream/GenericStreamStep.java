@@ -8,12 +8,12 @@ import java.util.Map;
 import net.canadensys.harvester.ItemProcessorIF;
 import net.canadensys.harvester.ItemReaderIF;
 import net.canadensys.harvester.ItemWriterIF;
-import net.canadensys.harvester.ProcessingStepIF;
+import net.canadensys.harvester.StepResult;
 import net.canadensys.harvester.exception.WriterException;
-import net.canadensys.harvester.jms.JMSConsumerMessageHandlerIF;
 import net.canadensys.harvester.message.ProcessingMessageIF;
 import net.canadensys.harvester.occurrence.SharedParameterEnum;
 import net.canadensys.harvester.occurrence.message.DefaultMessage;
+import net.canadensys.harvester.occurrence.step.async.AbstractReceiverStep;
 
 import org.apache.log4j.Logger;
 
@@ -25,7 +25,7 @@ import org.apache.log4j.Logger;
  *
  * @param <T>
  */
-public class GenericStreamStep<T> implements ProcessingStepIF{
+public class GenericStreamStep<T> extends AbstractStreamStep {
 
 	private static final Logger LOGGER = Logger.getLogger(GenericStreamStep.class);
 	private static final int DEFAULT_FLUSH_INTERVAL = 100;
@@ -37,12 +37,8 @@ public class GenericStreamStep<T> implements ProcessingStepIF{
 	//Flush interval, number of OccurrenceRawModel until we flush it (into a JMS message)
 	private int flushInterval = DEFAULT_FLUSH_INTERVAL;
 
-	private int numberOfRecords = 0;
 	private Map<SharedParameterEnum,Object> sharedParameters;
-	
-	//List of message handlers that will received the streamed messages
-	private List<Class< ? extends JMSConsumerMessageHandlerIF>> targetedMsgHandlerList;
-	
+		
 	private String stepTitle = "Streaming data using GenericStreamStep";
 	
 	@Override
@@ -53,8 +49,8 @@ public class GenericStreamStep<T> implements ProcessingStepIF{
 		if(reader == null){
 			throw new IllegalStateException("No reader defined");
 		}
-		if( targetedMsgHandlerList == null || targetedMsgHandlerList.size() <= 0){
-			throw new IllegalStateException("No targeted message handler");
+		if(asyncReceivers == null || asyncReceivers.isEmpty()){
+			throw new IllegalStateException("No targeted AbstractAsyncReceiverStep");
 		}
 		
 		this.sharedParameters = sharedParameters;
@@ -77,7 +73,8 @@ public class GenericStreamStep<T> implements ProcessingStepIF{
 	}
 
 	@Override
-	public void doStep() {
+	public StepResult doStep() {
+		int numberOfRecords = 0;
 		long t= System.currentTimeMillis();
 		List<T> objList = new ArrayList<T>();
 		
@@ -100,7 +97,7 @@ public class GenericStreamStep<T> implements ProcessingStepIF{
 			writeObjects(objList);
 		}
 		System.out.println("Streaming the file took :" + (System.currentTimeMillis()-t) + " ms");
-		sharedParameters.put(SharedParameterEnum.NUMBER_OF_RECORDS,numberOfRecords);
+		return new StepResult(numberOfRecords);
 	}
 	
 	/**
@@ -109,10 +106,10 @@ public class GenericStreamStep<T> implements ProcessingStepIF{
 	 */
 	private void writeObjects(List<T> objList){
 		try{
-			for(Class<?> currClass : targetedMsgHandlerList){
+			for(Class<? extends AbstractReceiverStep> currAsyncReceiver : asyncReceivers){
 				DefaultMessage dmsg = new DefaultMessage();
 				dmsg.setTimestamp(Calendar.getInstance().getTime().toString());
-				dmsg.setMsgHandlerClass(currClass);
+				dmsg.setMsgHandlerClass(currAsyncReceiver);
 				dmsg.setContent(objList);
 				dmsg.setContentClass(objList.getClass());
 				dmsg.setContentClassGeneric(objList.get(0).getClass());
@@ -122,10 +119,6 @@ public class GenericStreamStep<T> implements ProcessingStepIF{
 		catch(WriterException e){
 			LOGGER.fatal(e);
 		}
-	}
-	
-	public int getNumberOfRecords(){
-		return numberOfRecords;
 	}
 	
 	public void setReader(ItemReaderIF<T> reader) {
@@ -139,19 +132,25 @@ public class GenericStreamStep<T> implements ProcessingStepIF{
 		this.lineProcessor = lineProcessor;
 	}
 	
-	public List<Class<? extends JMSConsumerMessageHandlerIF>> targetedStepList() {
-		return targetedMsgHandlerList;
-	}
-	public void setMessageClasses(
-			List<Class<? extends JMSConsumerMessageHandlerIF>> targetedMsgHandlerList) {
-		this.targetedMsgHandlerList = targetedMsgHandlerList;
-	}
-	
 	public void setTitle(String stepTitle) {
 		this.stepTitle=stepTitle;
 	}
 	@Override
 	public String getTitle() {
 		return stepTitle;
+	}
+	
+	/**
+	 * 
+	 */
+	@Override
+	public void addAsyncReceiverStep(Class<? extends AbstractReceiverStep> asyncReceiver){
+		super.addAsyncReceiverStep(asyncReceiver);
+	}
+
+	@Override
+	public void cancel() {
+		// TODO Auto-generated method stub
+		
 	}
 }

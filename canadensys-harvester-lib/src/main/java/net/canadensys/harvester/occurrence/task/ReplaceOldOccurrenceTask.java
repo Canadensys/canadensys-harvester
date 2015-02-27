@@ -29,52 +29,62 @@ public class ReplaceOldOccurrenceTask implements ItemTaskIF{
 	private SessionFactory sessionFactory;
 	
 	/**
-	 * @param sharedParameters in:DATASET_SHORTNAME, out:NUMBER_OF_RECORDS
+	 * @param sharedParameters SharedParameterEnum.SOURCE_FILE_ID, SharedParameterEnum.RESOURCE_UUID required
 	 */
 	@Transactional("publicTransactionManager")
 	@Override
 	public void execute(Map<SharedParameterEnum,Object> sharedParameters){
 		Session session = sessionFactory.getCurrentSession();
 		
-		String datasetShortname = (String)sharedParameters.get(SharedParameterEnum.DATASET_SHORTNAME);
+		String sourceFileId = (String)sharedParameters.get(SharedParameterEnum.SOURCE_FILE_ID);
+		String resourceUUID = (String)sharedParameters.get(SharedParameterEnum.RESOURCE_UUID);
 
-		if(datasetShortname == null){
-			LOGGER.fatal("Misconfigured task : datasetShortname cannot be null");
+		if(sourceFileId == null || resourceUUID == null){
+			LOGGER.fatal("Misconfigured task : sourceFileId and resourceUUID are required");
 			throw new TaskExecutionException("Misconfigured task");
 		}
 		
 		try{
 			//delete old records
 			SQLQuery query = session.createSQLQuery("DELETE FROM occurrence WHERE sourcefileid=?");
-			query.setString(0, datasetShortname);
+			query.setString(0, sourceFileId);
 			query.executeUpdate();
 			query = session.createSQLQuery("DELETE FROM occurrence_raw WHERE sourcefileid=?");
-			query.setString(0, datasetShortname);
+			query.setString(0, sourceFileId);
 			query.executeUpdate();
 			query = session.createSQLQuery("DELETE FROM resource_contact WHERE sourcefileid=?");
-			query.setString(0, datasetShortname);
+			query.setString(0, sourceFileId);
+			query.executeUpdate();
+			query = session.createSQLQuery("DELETE FROM occurrence_extension WHERE resource_uuid=?");
+			query.setString(0, resourceUUID);
 			query.executeUpdate();
 			
 			//copy records from buffer
 			query = session.createSQLQuery("INSERT INTO occurrence (SELECT * FROM buffer.occurrence WHERE sourcefileid=?)");
-			query.setString(0, datasetShortname);
+			query.setString(0, sourceFileId);
 			int numberOfRecords = query.executeUpdate();
 			query = session.createSQLQuery("INSERT INTO occurrence_raw (SELECT * FROM buffer.occurrence_raw WHERE sourcefileid=?)");
-			query.setString(0, datasetShortname);
+			query.setString(0, sourceFileId);
 			query.executeUpdate();
 			query = session.createSQLQuery("INSERT INTO resource_contact (SELECT * FROM buffer.resource_contact WHERE sourcefileid=?)");
-			query.setString(0, datasetShortname);
+			query.setString(0, sourceFileId);
+			query.executeUpdate();
+			query = session.createSQLQuery("INSERT INTO occurrence_extension (SELECT * FROM buffer.occurrence_extension WHERE resource_uuid=?)");
+			query.setString(0, resourceUUID);
 			query.executeUpdate();
 			
 			//empty buffer schema for this sourcefileid
 			query = session.createSQLQuery("DELETE FROM buffer.occurrence WHERE sourcefileid=?");
-			query.setString(0, datasetShortname);
+			query.setString(0, sourceFileId);
 			query.executeUpdate();
 			query = session.createSQLQuery("DELETE FROM buffer.occurrence_raw WHERE sourcefileid=?");
-			query.setString(0, datasetShortname);
+			query.setString(0, sourceFileId);
 			query.executeUpdate();
 			query = session.createSQLQuery("DELETE FROM buffer.resource_contact WHERE sourcefileid=?");
-			query.setString(0, datasetShortname);
+			query.setString(0, sourceFileId);
+			query.executeUpdate();
+			query = session.createSQLQuery("DELETE FROM buffer.occurrence_extension WHERE resource_uuid=?");
+			query.setString(0, resourceUUID);
 			query.executeUpdate();
 			
 			sharedParameters.put(SharedParameterEnum.NUMBER_OF_RECORDS, numberOfRecords);

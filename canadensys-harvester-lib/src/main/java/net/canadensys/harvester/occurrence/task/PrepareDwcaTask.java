@@ -141,8 +141,8 @@ public class PrepareDwcaTask implements ItemTaskIF{
 		
 		//if SharedParameterEnum.DWCA_PATH was previously there, we replace it
 		sharedParameters.put(SharedParameterEnum.DWCA_PATH, dwcaFileLocation);
-		if(allowDatasetShortnameExtraction && sharedParameters.get(SharedParameterEnum.DATASET_SHORTNAME) == null){
-			sharedParameters.put(SharedParameterEnum.DATASET_SHORTNAME, dwcaIdentifier);
+		if(allowDatasetShortnameExtraction && sharedParameters.get(SharedParameterEnum.SOURCE_FILE_ID) == null){
+			sharedParameters.put(SharedParameterEnum.SOURCE_FILE_ID, dwcaIdentifier);
 		}
 	}
 	

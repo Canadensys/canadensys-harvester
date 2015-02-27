@@ -8,14 +8,12 @@ import net.canadensys.harvester.message.control.NodeErrorControlMessage;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
 /**
  * Controller that will receive notifications from node(s) in case of error.
  * @author canadensys
  *
  */
-@Component("nodeStatusController")
 public class NodeStatusController implements JMSControlConsumerMessageHandlerIF{
 
 	private static final Logger LOGGER = Logger.getLogger(NodeStatusController.class);
