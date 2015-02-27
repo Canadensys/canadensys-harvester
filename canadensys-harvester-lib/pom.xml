@@ -22,7 +22,7 @@
 		<jsch.version>0.1.51</jsch.version>
 		<activemq.version>5.10.0</activemq.version>
 		<narwhal.version>1.5.1</narwhal.version>
-		<data-access.version>2.12.0-SNAPSHOT</data-access.version>
+		<data-access.version>2.11.1</data-access.version>
 			
 		<gbif-api.version>0.10</gbif-api.version>
 		<dwca-reader.version>1.18</dwca-reader.version>
